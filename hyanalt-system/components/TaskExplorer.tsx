@@ -220,7 +220,7 @@ export function TaskExplorer({
         </div>
 
         {/* Баганын нэр — доорх бүх мөр яг энэ баганад эгнэнэ */}
-        <div className="eyebrow grid flex-none grid-cols-[1fr_132px_106px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-4">
+        <div className="eyebrow grid flex-none grid-cols-[1fr_150px_120px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-4">
           <span>Ажил</span>
           <span className="text-center">НБОГ</span>
           <span className="text-center">Монмэп</span>
@@ -238,7 +238,7 @@ export function TaskExplorer({
                 tabIndex={0}
                 onClick={() => toggle(openStages, stage.no, setOpenStages)}
                 onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle(openStages, stage.no, setOpenStages)}
-                className="grid w-full cursor-pointer grid-cols-[1fr_132px_106px_96px] items-center gap-3 border-b border-line bg-surface-2 py-2.5 pr-4 pl-4 hover:bg-surface-3"
+                className="grid w-full cursor-pointer grid-cols-[1fr_150px_120px_96px] items-center gap-3 border-b border-line bg-surface-2 py-2.5 pr-4 pl-4 hover:bg-surface-3"
               >
                 <span className="flex min-w-0 items-center gap-2.5">
                   <IconChevronRight
@@ -267,7 +267,7 @@ export function TaskExplorer({
                         tabIndex={0}
                         onClick={() => toggle(openDepts, key, setOpenDepts)}
                         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle(openDepts, key, setOpenDepts)}
-                        className="grid w-full cursor-pointer grid-cols-[1fr_132px_106px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-8 hover:bg-surface-2"
+                        className="grid w-full cursor-pointer grid-cols-[1fr_150px_120px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-8 hover:bg-surface-2"
                       >
                         <span className="flex min-w-0 items-center gap-2.5">
                           <IconChevronRight
@@ -292,7 +292,7 @@ export function TaskExplorer({
                               tabIndex={0}
                               onClick={() => setFocus(r.id)}
                               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setFocus(r.id)}
-                              className="grid w-full cursor-pointer grid-cols-[1fr_132px_106px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-12 text-left hover:bg-surface-2"
+                              className="grid w-full cursor-pointer grid-cols-[1fr_150px_120px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-12 text-left hover:bg-surface-2"
                               style={late ? { background: "color-mix(in srgb, var(--crit-soft) 55%, transparent)" } : undefined}
                             >
                               <span className="flex min-w-0 gap-2.5">
@@ -302,11 +302,11 @@ export function TaskExplorer({
                                   {r.group && <span className="block truncate text-[10px] text-ink-3">{r.group}</span>}
                                 </span>
                               </span>
-                              <span className="flex justify-center">
-                                <StateSelect side="nbog" milestoneId={r.id} value={r.nbogState} width={132} />
+                              <span className="flex">
+                                <StateSelect side="nbog" milestoneId={r.id} value={r.nbogState} width={150} />
                               </span>
-                              <span className="flex justify-center">
-                                <StateSelect side="vendor" milestoneId={r.id} value={r.vendorState} width={106} />
+                              <span className="flex">
+                                <StateSelect side="vendor" milestoneId={r.id} value={r.vendorState} width={120} />
                               </span>
                               <span className="num text-right text-[11px] whitespace-nowrap text-ink-2">
                                 {r.deadline}
@@ -352,11 +352,11 @@ function pct(n: number, total: number) {
 /** Гүйцэтгэлийн хувь — баганадаа эгнэсэн жижиг хэмжүүр */
 function Meter({ value, color }: { value: number; color: string }) {
   return (
-    <span className="flex items-center justify-center gap-2">
+    <span className="flex items-center gap-2">
       <span className="num w-7 text-right text-[10.5px]" style={{ color: value > 0 ? color : "var(--ink-3)" }}>
         {value}%
       </span>
-      <span className="flex h-1.5 w-[64px] overflow-hidden rounded-full bg-surface-3">
+      <span className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-surface-3">
         <i style={{ width: `${value}%`, background: color }} />
       </span>
     </span>
