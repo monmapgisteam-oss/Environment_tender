@@ -59,10 +59,10 @@ const QUICK: { key: string; label: string; match: (r: Row) => boolean }[] = [
 /** CSV-д бичих гар удирдлагатай төлөвийн нэрс */
 const NBOG_LABEL: Record<string, string> = {
   waiting: "НБОГ-оос хүлээгдэж буй",
-  working: "НБОГ дээр хийгдэж байгаа",
-  done: "НБОГ талаас дууссан",
+  working: "Хийгдэж байгаа",
+  done: "Дууссан",
 };
-const VENDOR_LABEL: Record<string, string> = { working: "Монмэп дээр хийгдэж байгаа", done: "Дууссан — систем рүү орсон" };
+const VENDOR_LABEL: Record<string, string> = { working: "Хийгдэж байгаа", done: "Дууссан, системд орсон" };
 
 interface Counts {
   total: number;

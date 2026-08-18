@@ -14,14 +14,14 @@ interface Option {
 /** НБОГ талын сонголтууд */
 export const NBOG_OPTIONS: Option[] = [
   { value: "waiting", label: "НБОГ-оос хүлээгдэж буй", color: "var(--info)", soft: "var(--info-soft)" },
-  { value: "working", label: "НБОГ дээр хийгдэж байгаа", color: "var(--warn)", soft: "var(--warn-soft)" },
-  { value: "done", label: "НБОГ талаас дууссан", color: "var(--ok)", soft: "var(--ok-soft)" },
+  { value: "working", label: "Хийгдэж байгаа", color: "var(--warn)", soft: "var(--warn-soft)" },
+  { value: "done", label: "Дууссан", color: "var(--ok)", soft: "var(--ok-soft)" },
 ];
 
 /** Монмэп талын сонголтууд */
 export const VENDOR_OPTIONS: Option[] = [
-  { value: "working", label: "Монмэп дээр хийгдэж байгаа", color: "var(--warn)", soft: "var(--warn-soft)" },
-  { value: "done", label: "Дууссан — систем рүү орсон", color: "var(--plum)", soft: "var(--plum-soft)" },
+  { value: "working", label: "Хийгдэж байгаа", color: "var(--warn)", soft: "var(--warn-soft)" },
+  { value: "done", label: "Дууссан, системд орсон", color: "var(--plum)", soft: "var(--plum-soft)" },
 ];
 
 /**

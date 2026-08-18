@@ -110,7 +110,7 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
                 <dt className="text-ink-3">Хүлээгдэж буй тал</dt>
                 <dd className="m-0">
                   {view.vendorState === "done"
-                    ? "Дууссан — систем рүү орсон, мэдэгдэл үүсэхгүй"
+                    ? "Дууссан, системд орсон — мэдэгдэл үүсэхгүй"
                     : view.nbogState === "waiting" || view.nbogState === "working"
                       ? "НБОГ тал — мэдэгдэл НБОГ-ын хүмүүст очно"
                       : "Гүйцэтгэгч тал — мэдэгдэл Монмэп-д очно"}
