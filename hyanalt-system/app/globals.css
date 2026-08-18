@@ -1,0 +1,348 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   Дарууссан харанхуй самбар.
+   Нэг өргөлт өнгө (номин цэнхэр) + саарал өнгөний шат.
+   Төлөвийн өнгө ердөө гурав: хөх ногоон (гүйцэтгэсэн),
+   охра (сануулга), тоосгон улаан (хугацаа хэтэрсэн).
+   Бүх өнгө ханалт багатай — гэрэлтэхгүй.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+
+  --ground: #0b0b0e;
+  --surface: #121216;
+  --surface-2: #17171c;
+  --surface-3: #202027;
+  --line: #232329;
+  --line-2: #2e2e36;
+
+  --ink: #e7e8ec;
+  --ink-2: #8f929c;
+  --ink-3: #5f626c;
+
+  --accent: #5b83c4;
+  --accent-2: #7ea0d8;
+  --accent-soft: #182131;
+  --accent-on: #0b0b0e;
+
+  --data: #626673;
+  --data-soft: #1c1d22;
+  --ok: #5f9e83;
+  --ok-soft: #16241f;
+  --warn: #bc9450;
+  --warn-soft: #241f16;
+  --crit: #c07160;
+  --crit-soft: #261a17;
+  --sev: #a2647f;
+  --sev-soft: #24181e;
+
+  --radius: 14px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Гэрэл горим — ижил дарууссан логик, зөвхөн туйл нь эсрэг.
+   Хэрэглэгч дээд мөрний товчоор сонгоно (html[data-theme]).
+   ───────────────────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --ground: #f2f4f7;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --surface-3: #e9ecf1;
+  --line: #e2e5ea;
+  --line-2: #cdd2da;
+
+  --ink: #191c22;
+  --ink-2: #5b616d;
+  --ink-3: #8b909c;
+
+  --accent: #3c6ab2;
+  --accent-2: #2b5391;
+  --accent-soft: #e7eefa;
+  --accent-on: #ffffff;
+
+  --data: #6d7482;
+  --data-soft: #eceef2;
+  --ok: #3c8266;
+  --ok-soft: #e4f0ea;
+  --warn: #9a7328;
+  --warn-soft: #f7efdc;
+  --crit: #b53a35;
+  --crit-soft: #fae7e6;
+  --sev: #8d4763;
+  --sev-soft: #f7e8ee;
+}
+
+html,
+body {
+  background: var(--ground);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-on: var(--accent-on);
+  --color-data: var(--data);
+  --color-data-soft: var(--data-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-crit: var(--crit);
+  --color-crit-soft: var(--crit-soft);
+  --color-sev: var(--sev);
+  --color-sev-soft: var(--sev-soft);
+
+  --font-display: var(--f-display), "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--f-sans), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--f-mono), Consolas, ui-monospace, monospace;
+}
+
+@layer components {
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Хавтгай карт — чимэглэлгүй, зөвхөн нимгэн хүрээ */
+  .card {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .card-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 9px 14px 7px;
+    flex: none;
+  }
+
+  .card-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--ink);
+  }
+
+  .card-note {
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+
+  .stat {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Төлөвийн шошго — суурь нь саарал, зөвхөн цэг өнгөтэй */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    background: var(--surface-3);
+    color: var(--ink-2);
+  }
+  .pill::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+  }
+  .pill-planned { color: var(--ink-3); }
+  .pill-active { color: var(--data); }
+  .pill-warn1,
+  .pill-warn2 { color: var(--warn); }
+  .pill-level2 { color: var(--crit); }
+  .pill-level3 { color: var(--sev); }
+  .pill-done,
+  .pill-late { color: var(--ok); }
+
+  .btn {
+    border: 1px solid var(--line-2);
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .btn:hover { color: var(--ink); background: var(--surface-3); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-on);
+    font-weight: 600;
+  }
+  .btn-primary:hover {
+    background: var(--accent-2);
+    border-color: var(--accent-2);
+    color: var(--accent-on);
+  }
+
+  .seg {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+  }
+  .seg button {
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .seg button:hover { color: var(--ink-2); }
+  .seg button[data-on="true"] {
+    background: var(--surface-3);
+    color: var(--ink);
+  }
+
+  .chip {
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    color: var(--ink-3);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip:hover { color: var(--ink-2); border-color: var(--line-2); }
+  .chip-on {
+    background: var(--surface-3);
+    border-color: var(--line-2);
+    color: var(--ink);
+  }
+
+  .field {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    padding: 5px 9px;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .field:hover { border-color: var(--line-2); color: var(--ink); }
+  select.field option { background: var(--surface-2); color: var(--ink); }
+
+  .table-head {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 400;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .cell {
+    padding: 5px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+    line-height: 1.35;
+  }
+
+  /* Хяналтын самбар: мөрүүд дэлгэцэд яг багтана — хуудас гүйхгүй */
+  .dash-grid {
+    display: grid;
+    gap: 12px;
+    min-height: 0;
+  }
+  @media (min-width: 1280px) {
+    /* Дэлгэцийн өндрөөс толгой мөрийг хасаж шууд тооцно — flex-ийн уян
+       тооцоололд найдвал доод мөр дэлгэцээс халих эрсдэлтэй. */
+    .dash-grid {
+      height: calc(100vh - 53px);
+      grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1.05fr);
+      overflow: hidden;
+    }
+    .dash-row {
+      min-height: 0;
+    }
+    /* Жагсаалтын хуудсууд ч мөн адил */
+    .page-fill {
+      height: calc(100vh - 53px);
+      overflow: hidden;
+    }
+  }
+
+  tbody tr:last-child .cell {
+    border-bottom: 0;
+  }
+}
