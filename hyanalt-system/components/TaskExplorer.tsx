@@ -66,17 +66,17 @@ const VENDOR_LABEL: Record<string, string> = { working: "Хийгдэж байг
 
 interface Counts {
   total: number;
-  done: number;
-  warn: number;
-  over: number;
+  /** НБОГ талаас "Дууссан" гэж тэмдэглэсэн ажил */
+  nbogDone: number;
+  /** Монмэп талаас "Дууссан, системд орсон" гэж тэмдэглэсэн ажил */
+  vendorDone: number;
 }
 
 function count(rows: Row[]): Counts {
   return {
     total: rows.length,
-    done: rows.filter((r) => r.status === "done" || r.status === "late").length,
-    warn: rows.filter((r) => r.status === "warn1" || r.status === "warn2").length,
-    over: rows.filter((r) => r.status === "level2" || r.status === "level3").length,
+    nbogDone: rows.filter((r) => r.nbogState === "done").length,
+    vendorDone: rows.filter((r) => r.vendorState === "done").length,
   };
 }
 
@@ -121,7 +121,13 @@ export function TaskExplorer({
               .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || a.title.localeCompare(b.title));
             return { id: first.deptId, name: first.deptName, head: first.deptHead, rows: deptRows, counts: count(deptRows) };
           })
-          .sort((a, b) => b.counts.over - a.counts.over || a.name.localeCompare(b.name));
+          // Хугацаа хэтэрсэн ажил ихтэй хэлтэс эхэнд
+          .sort(
+            (a, b) =>
+              b.rows.filter((r) => r.status === "level2" || r.status === "level3").length -
+                a.rows.filter((r) => r.status === "level2" || r.status === "level3").length ||
+              a.name.localeCompare(b.name),
+          );
         return { stage, depts, counts: count(stageRows) };
       })
       .filter((s) => s.counts.total > 0);
@@ -214,12 +220,11 @@ export function TaskExplorer({
         </div>
 
         {/* Баганын нэр */}
-        <div className="eyebrow grid flex-none grid-cols-[1fr_130px_104px_82px_142px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12">
+        <div className="eyebrow grid flex-none grid-cols-[1fr_130px_104px_92px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12">
           <span>Ажил</span>
           <span>НБОГ</span>
           <span>Монмэп</span>
           <span className="text-right">Хугацаа</span>
-          <span>Системийн төлөв</span>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -271,7 +276,7 @@ export function TaskExplorer({
                               tabIndex={0}
                               onClick={() => setFocus(r.id)}
                               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setFocus(r.id)}
-                              className="grid w-full cursor-pointer grid-cols-[1fr_130px_104px_82px_142px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12 text-left hover:bg-surface-2"
+                              className="grid w-full cursor-pointer grid-cols-[1fr_130px_104px_92px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12 text-left hover:bg-surface-2"
                               style={late ? { background: "color-mix(in srgb, var(--crit-soft) 55%, transparent)" } : undefined}
                             >
                               <span className="flex min-w-0 gap-2.5">
@@ -293,7 +298,6 @@ export function TaskExplorer({
                                       : `${r.daysLeft} хоног үлдсэн`}
                                 </span>
                               </span>
-                              <span className={`pill pill-${r.status}`}>{STATUS_LABEL[r.status]}</span>
                             </div>
                           );
                         })}
@@ -324,27 +328,27 @@ export function TaskExplorer({
   );
 }
 
-/** Бүлгийн товч тоо — ирүүлсэн / сануулга / хэтэрсэн */
+/** Бүлгийн гүйцэтгэл — хоёр талын тэмдэглэгээгээр */
 function Summary({ counts, className = "" }: { counts: Counts; className?: string }) {
+  const pct = (n: number) => (counts.total ? Math.round((n / counts.total) * 100) : 0);
   return (
-    <span className={`flex flex-none items-center gap-2.5 text-[10.5px] ${className}`}>
+    <span className={`flex flex-none items-center gap-3 text-[10.5px] ${className}`}>
       <span className="num text-ink-3">{counts.total} ажил</span>
-      <span className="num" style={{ color: "var(--ok)" }}>
-        {counts.done} ирүүлсэн
+      <Meter label="НБОГ" value={pct(counts.nbogDone)} color="var(--ok)" />
+      <Meter label="Монмэп" value={pct(counts.vendorDone)} color="var(--plum)" />
+    </span>
+  );
+}
+
+function Meter({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <span className="text-ink-3">{label}</span>
+      <span className="num w-7 text-right" style={{ color: value > 0 ? color : "var(--ink-3)" }}>
+        {value}%
       </span>
-      {counts.warn > 0 && (
-        <span className="num" style={{ color: "var(--warn)" }}>
-          {counts.warn} сануулга
-        </span>
-      )}
-      {counts.over > 0 && (
-        <span className="num" style={{ color: "var(--crit)" }}>
-          {counts.over} хэтэрсэн
-        </span>
-      )}
-      <span className="flex h-1.5 w-[46px] overflow-hidden rounded-full bg-surface-3">
-        <i style={{ width: `${(counts.done / counts.total) * 100}%`, background: "var(--ok)" }} />
-        <i style={{ width: `${(counts.over / counts.total) * 100}%`, background: "var(--crit)" }} />
+      <span className="flex h-1.5 w-[40px] overflow-hidden rounded-full bg-surface-3">
+        <i style={{ width: `${value}%`, background: color }} />
       </span>
     </span>
   );
