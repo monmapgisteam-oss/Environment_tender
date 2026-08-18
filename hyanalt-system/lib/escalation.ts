@@ -17,12 +17,19 @@ import type {
 export type Blocking = "vendor" | "client";
 
 /**
- * НБОГ баганын гар тэмдэглэгээнээс уншина:
- *   "НБОГ-с хүлээгдэж буй" → саатал захиалагч талд   → мэдэгдэл НБОГ-ын хүмүүст
- *   бусад тохиолдолд                                  → мэдэгдэл гүйцэтгэгчид
+ * Ажил хэний талд хүлээгдэж байгааг гар тэмдэглэгээнээс уншина:
+ *   НБОГ = "НБОГ-оос хүлээгдэж буй" эсвэл "НБОГ дээр хийгдэж байгаа"
+ *        → саатал захиалагч талд   → мэдэгдэл НБОГ-ын хүмүүст
+ *   бусад (НБОГ талаас дууссан, тэмдэглээгүй, Монмэп дээр хийгдэж байгаа)
+ *        → саатал гүйцэтгэгч талд  → мэдэгдэл Монмэп-д
  */
 export function blockingSide(m: Pick<Milestone, "nbogState">): Blocking {
-  return m.nbogState === "wait_client" ? "client" : "vendor";
+  return m.nbogState === "waiting" || m.nbogState === "working" ? "client" : "vendor";
+}
+
+/** Ажил дууссан эсэх — гүйцэтгэгч "систем рүү орсон" гэж тэмдэглэсэн бол шатлал зогсоно */
+export function isClosed(m: Pick<Milestone, "vendorState">): boolean {
+  return m.vendorState === "done";
 }
 
 export const RULES: {
@@ -217,8 +224,8 @@ export function runEscalation(db: DB, asOf: string): RunResult {
     const dept = depts.get(m.deptId)!;
     const task = tasks.get(m.taskId)!;
     const company = companies.get(m.companyId)!;
-    // Гараар "Дууссан" гэж тэмдэглэсэн бол шатлал зогсоно
-    if (m.nbogState === "done") continue;
+    // Гүйцэтгэгч "Дууссан — систем рүү орсон" гэж тэмдэглэсэн бол шатлал зогсоно
+    if (isClosed(m)) continue;
     const blocking = blockingSide(m);
     for (const rule of RULES) {
       const dueOn = triggerDate(m.deadline, rule.key, s);
@@ -273,7 +280,7 @@ export function buildViews(db: DB, asOf: string): MilestoneView[] {
     const submitted = m.submittedAt && diffDays(m.submittedAt, asOf) <= 0 ? m.submittedAt : null;
 
     const blocking = blockingSide(m);
-    const closed = m.nbogState === "done";
+    const closed = isClosed(m);
     const steps: LadderStep[] = RULES.map((rule) => {
       const dueOn = triggerDate(m.deadline, rule.key, s);
       let state: LadderStep["state"] = "pending";

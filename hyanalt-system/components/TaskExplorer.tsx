@@ -58,12 +58,11 @@ const QUICK: { key: string; label: string; match: (r: Row) => boolean }[] = [
 
 /** CSV-д бичих гар удирдлагатай төлөвийн нэрс */
 const NBOG_LABEL: Record<string, string> = {
-  wait_vendor: "Монмэп-с хүлээгдэж буй",
-  wait_client: "НБОГ-с хүлээгдэж буй",
-  in_progress: "Хийгдэж байгаа",
-  done: "Дууссан",
+  waiting: "НБОГ-оос хүлээгдэж буй",
+  working: "НБОГ дээр хийгдэж байгаа",
+  done: "НБОГ талаас дууссан",
 };
-const VENDOR_LABEL: Record<string, string> = { yes: "Тийм", in_progress: "Хийгдэж байгаа" };
+const VENDOR_LABEL: Record<string, string> = { working: "Монмэп дээр хийгдэж байгаа", done: "Дууссан — систем рүү орсон" };
 
 interface Counts {
   total: number;
@@ -211,7 +210,7 @@ export function TaskExplorer({
               </button>
             );
           })}
-          <span className="ml-auto text-[11px] text-ink-3">НБОГ баганад «НБОГ-с хүлээгдэж буй» гэвэл сануулга НБОГ-ын хүмүүст очно</span>
+          <span className="ml-auto text-[11px] text-ink-3">НБОГ баганад «хүлээгдэж буй / хийгдэж байгаа» гэвэл сануулга НБОГ-ын хүмүүст очно</span>
         </div>
 
         {/* Баганын нэр */}

@@ -10,11 +10,20 @@ export type Status =
   | "done" // хугацаандаа ирүүлсэн
   | "late"; // хоцорч ирүүлсэн
 
-/** Захиалагч (НБОГ) талын гар удирдлагатай төлөв */
-export type NbogState = "wait_vendor" | "wait_client" | "in_progress" | "done";
+/**
+ * Захиалагч (НБОГ) талын төлөв:
+ *   waiting  — НБОГ-оос мэдээлэл, шийдвэр хүлээгдэж байна
+ *   working  — НБОГ дээр ажил хийгдэж байна
+ *   done     — НБОГ талын үүрэг дууссан, бөмбөг гүйцэтгэгч талд
+ */
+export type NbogState = "waiting" | "working" | "done";
 
-/** Гүйцэтгэгч (Монмэп) талын гар удирдлагатай төлөв */
-export type VendorState = "yes" | "in_progress";
+/**
+ * Гүйцэтгэгч (Монмэп) талын төлөв:
+ *   working  — Монмэп дээр ажил хийгдэж байна
+ *   done     — Ажил дууссан, системд орсон
+ */
+export type VendorState = "working" | "done";
 
 export type RuleKey = "reminder" | "final" | "level2" | "level3";
 

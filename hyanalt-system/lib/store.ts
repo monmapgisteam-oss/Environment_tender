@@ -13,7 +13,7 @@ import { runEscalation } from "./escalation";
 import { buildSeed, reviewDate } from "./seed";
 import type { DB, NbogState, Settings, VendorState } from "./types";
 
-const KEY = "hyanalt-state-v1";
+const KEY = "hyanalt-state-v2";
 
 interface Persisted {
   settings: Partial<Settings>;
