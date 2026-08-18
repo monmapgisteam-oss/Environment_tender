@@ -84,12 +84,10 @@ export function TaskExplorer({
   rows,
   stages,
   companyName,
-  contractNo,
 }: {
   rows: Row[];
   stages: StageInfo[];
   companyName: string;
-  contractNo: string;
 }) {
   const params = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? "");
@@ -148,11 +146,11 @@ export function TaskExplorer({
   const overdueCount = rows.filter((r) => r.status === "level2" || r.status === "level3").length;
 
   const exportCsv = () => {
-    const head = ["Үе шат", "Хариуцах хэлтэс", "Бүлэг", "Ажил", "НБОГ", "Монмэп", "Эцсийн хугацаа", "Системийн төлөв", "Ирүүлсэн"];
+    const head = ["Үе шат", "Хариуцах хэлтэс", "Бүлэг", "Ажил", "НБОГ", "Монмэп", "Эцсийн хугацаа", "Системийн төлөв"];
     const body = filtered.map((r) =>
       [`${r.stageNo}. ${r.stageName}`, r.deptName, r.group ?? "", r.title,
         NBOG_LABEL[r.nbogState ?? ""] ?? "", VENDOR_LABEL[r.vendorState ?? ""] ?? "",
-        r.deadline, STATUS_LABEL[r.status], r.submittedAt ?? ""]
+        r.deadline, STATUS_LABEL[r.status]]
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
         .join(","),
     );
@@ -181,10 +179,7 @@ export function TaskExplorer({
 
       <div className="card min-h-0 flex-1">
         <div className="flex flex-none flex-wrap items-center gap-2 border-b border-line px-3.5 py-2.5">
-          <div>
-            <b className="text-[12.5px]">{companyName}</b>
-            <span className="num ml-2 text-[10.5px] text-ink-3">{contractNo}</span>
-          </div>
+          <b className="text-[12.5px]">{companyName}</b>
           <div className="relative ml-auto">
             <IconSearch className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-3" />
             <input
@@ -216,11 +211,10 @@ export function TaskExplorer({
               </button>
             );
           })}
-          <span className="ml-auto text-[11px] text-ink-3">НБОГ баганад «хүлээгдэж буй / хийгдэж байгаа» гэвэл сануулга НБОГ-ын хүмүүст очно</span>
         </div>
 
         {/* Баганын нэр — доорх бүх мөр яг энэ баганад эгнэнэ */}
-        <div className="eyebrow grid flex-none grid-cols-[1fr_122px_98px_88px] items-center gap-6 border-b border-line py-2 pr-4 pl-4">
+        <div className="eyebrow grid flex-none grid-cols-[1fr_122px_98px_88px] items-center gap-10 border-b border-line py-2 pr-24 pl-4">
           <span>Ажил</span>
           <span className="text-center">НБОГ</span>
           <span className="text-center">Монмэп</span>
@@ -238,7 +232,7 @@ export function TaskExplorer({
                 tabIndex={0}
                 onClick={() => toggle(openStages, stage.no, setOpenStages)}
                 onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle(openStages, stage.no, setOpenStages)}
-                className="grid w-full cursor-pointer grid-cols-[1fr_122px_98px_88px] items-center gap-6 border-b border-line bg-surface-2 py-2.5 pr-4 pl-4 hover:bg-surface-3"
+                className="grid w-full cursor-pointer grid-cols-[1fr_122px_98px_88px] items-center gap-10 border-b border-line bg-surface-2 py-2.5 pr-20 pl-4 hover:bg-surface-3"
               >
                 <span className="flex min-w-0 items-center gap-2.5">
                   <IconChevronRight
@@ -267,7 +261,7 @@ export function TaskExplorer({
                         tabIndex={0}
                         onClick={() => toggle(openDepts, key, setOpenDepts)}
                         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle(openDepts, key, setOpenDepts)}
-                        className="grid w-full cursor-pointer grid-cols-[1fr_122px_98px_88px] items-center gap-6 border-b border-line py-2 pr-4 pl-8 hover:bg-surface-2"
+                        className="grid w-full cursor-pointer grid-cols-[1fr_122px_98px_88px] items-center gap-10 border-b border-line py-2 pr-20 pl-8 hover:bg-surface-2"
                       >
                         <span className="flex min-w-0 items-center gap-2.5">
                           <IconChevronRight
@@ -292,7 +286,7 @@ export function TaskExplorer({
                               tabIndex={0}
                               onClick={() => setFocus(r.id)}
                               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setFocus(r.id)}
-                              className="grid w-full cursor-pointer grid-cols-[1fr_122px_98px_88px] items-center gap-6 border-b border-line py-2 pr-4 pl-12 text-left hover:bg-surface-2"
+                              className="grid w-full cursor-pointer grid-cols-[1fr_122px_98px_88px] items-center gap-10 border-b border-line py-2 pr-20 pl-12 text-left hover:bg-surface-2"
                               style={late ? { background: "color-mix(in srgb, var(--crit-soft) 55%, transparent)" } : undefined}
                             >
                               <span className="flex min-w-0 gap-2.5">
@@ -324,19 +318,6 @@ export function TaskExplorer({
           ))}
         </div>
 
-        <div className="flex flex-none items-center gap-3 border-t border-line px-3.5 py-2 text-[11px] text-ink-3">
-          <span>
-            Харуулсан: <span className="num text-ink-2">{filtered.length}</span> / {rows.length} хяналтын цэг
-          </span>
-          <span className="ml-auto flex flex-wrap gap-3">
-            {(["level3", "level2", "warn2", "active", "done"] as Status[]).map((s) => (
-              <span key={s} className="inline-flex items-center gap-1.5">
-                <i className="size-2 rounded-[3px]" style={{ background: STRIPE[s] }} />
-                {STATUS_LABEL[s]}
-              </span>
-            ))}
-          </span>
-        </div>
       </div>
 
       <MilestoneDrawer id={focus} onClose={() => setFocus(null)} />

@@ -3,7 +3,7 @@
  * Node-ийн файл системээс хамаарахгүй тул хөтөч дээр ч ажиллана.
  */
 import { addDays, hash, today } from "./date";
-import { COMPANIES, DEPARTMENTS, MONMAP_STAGES, MONMAP_TASKS, PEOPLE, PROGRAM, splitStages } from "./plan";
+import { COMPANIES, DEPARTMENTS, MONMAP_STAGES, MONMAP_STATES, MONMAP_TASKS, PEOPLE, PROGRAM, splitStages } from "./plan";
 import type { Company, DB, Milestone, Settings, Stage, Task } from "./types";
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -32,6 +32,9 @@ function demoArrival(taskId: string, stageNo: number, start: string, end: string
   return null;
 }
 
+/** Ажлын нэрээр нь бодит тэмдэглэгээг олох (зөвхөн "Монмэп" ХХК-ийн 1-р үе шат) */
+const stateByTitle = new Map(MONMAP_STATES.map((s) => [s.title, s]));
+
 export function buildSeed(): DB {
   const companies: Company[] = [];
   const stages: Stage[] = [];
@@ -45,6 +48,8 @@ export function buildSeed(): DB {
       const taskId = `${company.id}-t${i + 1}`;
       tasks.push({ id: taskId, companyId: company.id, deptId: t.deptId, no: i + 1, title: t.title, group: t.group });
       for (const stage of companyStages) {
+        // Бодит тэмдэглэгээ зөвхөн "Монмэп" ХХК-ийн 1-р үе шатанд хамаарна
+        const real = company.id === "monmap" && stage.no === 1 ? stateByTitle.get(t.title) : undefined;
         milestones.push({
           id: `${taskId}-s${stage.no}`,
           taskId,
@@ -53,6 +58,8 @@ export function buildSeed(): DB {
           stageId: stage.id,
           deadline: stage.end,
           submittedAt: null,
+          nbogState: real?.nbog,
+          vendorState: real?.vendor,
           demoArrivesAt: demoArrival(taskId, stage.no, stage.start, stage.end),
         });
       }

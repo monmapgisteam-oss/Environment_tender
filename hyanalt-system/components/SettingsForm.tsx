@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { resetAll, updateSettings } from "@/lib/store";
+import { updateSettings } from "@/lib/store";
 import type { RuleKey, Settings } from "@/lib/types";
 
 const RULE_UI: {
@@ -61,84 +61,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         </div>
       </section>
 
-      <section className="card flex-none">
-        <div className="card-head">
-          <h2 className="card-title">Нэмэлт нөхцөл</h2>
-        </div>
-        <div className="flex flex-col gap-2.5 px-3.5 pb-3.5">
-          <Toggle
-            checked={settings.businessDaysOnly}
-            disabled={pending}
-            onChange={(v) => patch({ businessDaysOnly: v })}
-            label="Мэдэгдлийг зөвхөн ажлын өдөр илгээх"
-            hint="Амралтын өдөрт таарвал өмнөх ажлын өдөр рүү шилжинэ"
-          />
-          <Toggle
-            checked={settings.useReviewDate}
-            disabled={pending}
-            onChange={(v) => patch({ useReviewDate: v })}
-            label="Заасан хяналтын огноогоор ажиллах"
-            hint="Унтраавал систем бодит өнөөдрийн огноог ашиглана"
-          />
-          <Toggle
-            checked={settings.demoIncomingReports}
-            disabled={pending}
-            onChange={(v) => patch({ demoIncomingReports: v })}
-            label="Тайлан ирэхийг дуурайх (үзүүлэнгийн өгөгдөл)"
-            hint="Бодит ашиглалтад унтраана — тайланг гараар эсвэл API-аар бүртгэнэ"
-          />
-          <div className="flex flex-wrap gap-2 pt-1">
-            <button
-              className="btn"
-              disabled={pending}
-              onClick={() => patch({ reminderLead: 14, finalLead: 3, deptHeadAfter: 1, directorAfter: 7 })}
-            >
-              Анхны утгад буцаах
-            </button>
-            <button
-              className="btn"
-              disabled={pending}
-              onClick={() => {
-                if (confirm("Бүх мэдэгдэл, бүртгэлийг устгаж системийг шинээр эхлүүлэх үү?")) {
-                  start(() => resetAll());
-                }
-              }}
-            >
-              Системийг шинээр эхлүүлэх
-            </button>
-          </div>
-        </div>
-      </section>
     </>
   );
 }
 
-function Toggle({
-  checked,
-  disabled,
-  onChange,
-  label,
-  hint,
-}: {
-  checked: boolean;
-  disabled: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
-  hint: string;
-}) {
-  return (
-    <label className="flex items-start gap-2.5">
-      <input
-        type="checkbox"
-        className="mt-0.5 size-3.5 accent-[var(--accent)]"
-        checked={checked}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      <span className="text-[12.5px]">
-        {label}
-        <small className="block text-[10.5px] text-ink-3">{hint}</small>
-      </span>
-    </label>
-  );
-}

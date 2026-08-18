@@ -94,23 +94,18 @@ export function recipientsFor(
   blocking: Blocking = "vendor",
 ): Recipient[] {
   const head: Recipient = { name: dept.head, role: `${dept.name}-ийн дарга`, org: db.program.client };
-  const coordinator: Recipient = {
-    name: db.departments.find((d) => d.id === "sam")!.head,
-    role: "Гэрээний хэрэгжилт хариуцсан хэлтсийн дарга",
-    org: db.program.client,
-  };
 
   // Саатал захиалагч (НБОГ) талд — мэдэгдэл НБОГ-ын хүмүүст очно
   if (blocking === "client") {
     if (rule === "reminder" || rule === "final") return [head];
-    if (rule === "level2") return [head, { ...coordinator, escalated: true }];
+    if (rule === "level2") return [{ ...head, escalated: true }];
     return [{ ...db.people.director, escalated: true }];
   }
 
   // Саатал гүйцэтгэгч талд — мэдэгдэл гүйцэтгэгчид очно
   if (rule === "reminder") return [company.specialist ?? company.pm];
   if (rule === "final") return [company.pm];
-  if (rule === "level2") return [company.pm, { ...head, escalated: true }];
+  if (rule === "level2") return [{ ...head, escalated: true }];
   return [{ ...db.people.director, escalated: true }];
 }
 

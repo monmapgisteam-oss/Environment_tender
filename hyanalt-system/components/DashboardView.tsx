@@ -24,6 +24,14 @@ export interface Scope {
   overdue: number;
   level2: number;
   level3: number;
+  /** Сануулга/хоцролт хэний талд байгаагаар нь задалсан тоо */
+  warnClient: number;
+  warnVendor: number;
+  overdueClient: number;
+  overdueVendor: number;
+  /** Хамгийн ойрын эцсийн хугацаа ба түүнд үлдсэн хоног */
+  nextDeadline: string | null;
+  nextDeadlineDays: number;
   score: number;
   worstDelay: number;
   daysToEnd: number;
@@ -97,25 +105,40 @@ export function DashboardView({
         >
           <IconAlert className="size-4 flex-none text-crit" />
           <b className="text-[13px] text-crit">
-            {isAll ? "" : `${s.label} — `}хугацаа хэтэрсэн {s.overdue} ажил байна
+            {isAll ? "" : `${s.label} — `}
+            {s.overdue} ажлын хугацаа хэтэрсэн
           </b>
           <span className="text-[12px] text-ink-2">
-            {s.level2} нь хэлтсийн даргад, {s.level3} нь газрын даргад мэдэгдсэн
-            {isAll && ` · ${s.riskyCompanies} гүйцэтгэгчид зөрчилтэй`} · хамгийн их хоцролт{" "}
+            Мэдэгдэл явсан: <b className="font-semibold">{s.overdueClient}</b> НБОГ-ын хүмүүст,{" "}
+            <b className="font-semibold">{s.overdueVendor}</b> гүйцэтгэгчид · хамгийн их хоцролт{" "}
             <span className="num">{s.worstDelay}</span> хоног
+            {isAll && ` · ${s.riskyCompanies} гүйцэтгэгчид зөрчилтэй`}
           </span>
           <Link href={taskHref("status=overdue")} className="ml-auto text-[12px] text-crit">
             Жагсаалтыг харах →
           </Link>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface px-3.5 py-2.5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-line bg-surface px-3.5 py-2.5">
           <IconCheck className="size-4 flex-none text-ok" />
           <b className="text-[13px]">
-            {isAll ? "Хугацаа хэтэрсэн ажил алга" : `${s.label} — хугацаа хэтэрсэн ажилгүй`}
+            {isAll ? "" : `${s.label} — `}хугацаа хэтэрсэн ажил алга
           </b>
           <span className="text-[12px] text-ink-2">
-            {s.warn} ажил сануулгын бүсэд байна — гүйцэтгэгчид мэдэгдэл илгээгдсэн.
+            {s.nextDeadline ? (
+              <>
+                Дараагийн эцсийн хугацаа <span className="num">{s.nextDeadline}</span> —{" "}
+                <span className="num">{s.nextDeadlineDays}</span> хоног үлдлээ.{" "}
+              </>
+            ) : null}
+            {s.warn > 0 ? (
+              <>
+                Сануулга илгээсэн: <b className="font-semibold">{s.warnClient}</b> ажлаар НБОГ-ын хүмүүст,{" "}
+                <b className="font-semibold">{s.warnVendor}</b> ажлаар гүйцэтгэгчид.
+              </>
+            ) : (
+              "Сануулга илгээх шаардлагатай ажил алга."
+            )}
           </span>
           <Link href={taskHref("status=attn")} className="ml-auto text-[12px] text-ink-3 hover:text-ink-2">
             Жагсаалтыг харах →
@@ -129,13 +152,13 @@ export function DashboardView({
         <Kpi
           label="Хугацаа хэтэрсэн"
           value={s.overdue}
-          note={s.overdue ? `${s.level3} ноцтой хоцролт` : "зөрчилгүй"}
+          note={s.overdue ? `${s.overdueClient} НБОГ-д · ${s.overdueVendor} гүйцэтгэгчид` : "зөрчилгүй"}
           dot={s.overdue ? "var(--crit)" : undefined}
         />
         <Kpi
           label="Сануулга хүлээж буй"
           value={s.warn}
-          note="гүйцэтгэгчид илгээсэн"
+          note={s.warn ? `${s.warnClient} НБОГ-д · ${s.warnVendor} гүйцэтгэгчид` : "мэдэгдэл алга"}
           dot={s.warn ? "var(--warn)" : undefined}
         />
         {isAll ? (

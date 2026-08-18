@@ -44,20 +44,26 @@ export function StateSelect({
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const ref = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    // Гүйлгэх, цонх өөрчлөгдөх, өөр газар дарахад хаагдана
+    // Цэс болон түүнийг нээсэн товчин дээр дарсныг хаах шалтгаанд тооцохгүй
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (menuRef.current?.contains(t) || ref.current?.contains(t)) return;
+      setOpen(false);
+    };
     window.addEventListener("scroll", close, true);
     window.addEventListener("resize", close);
-    document.addEventListener("mousedown", close);
+    document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("scroll", close, true);
       window.removeEventListener("resize", close);
-      document.removeEventListener("mousedown", close);
+      document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
@@ -106,6 +112,7 @@ export function StateSelect({
 
       {open && (
         <div
+          ref={menuRef}
           role="listbox"
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}

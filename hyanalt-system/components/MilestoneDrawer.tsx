@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useTransition } from "react";
+import { useEffect, useMemo } from "react";
 import { StatusPill } from "@/components/StatusPill";
 import { buildViews } from "@/lib/escalation";
 import { reviewDate } from "@/lib/seed";
-import { markSubmitted, undoSubmit, useDB } from "@/lib/store";
+import { useDB } from "@/lib/store";
 
 const STEP_COLOR: Record<string, string> = {
   reminder: "var(--warn)",
@@ -21,7 +21,6 @@ const STEP_STATE: Record<string, string> = {
 
 export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
   const db = useDB();
-  const [pending, start] = useTransition();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -43,10 +42,6 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
   const open = Boolean(id);
   const view = detail?.view;
 
-  const act = (fn: (id: string) => void) => {
-    if (!id) return;
-    start(() => fn(id));
-  };
 
   return (
     <>
@@ -66,9 +61,6 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
           <>
             <header className="flex items-start gap-3 border-b border-line px-5 pt-5 pb-3.5">
               <div className="flex-1">
-                <div className="eyebrow">
-                  {view.companyNo}. {view.companyName} · {view.contractNo}
-                </div>
                 {/* Урт нэрийг тайлбараас нь салгаж, товч гарчиг + жижиг тайлбар болгоно */}
                 <h2 className="mt-1 text-[13.5px] leading-snug font-semibold">{view.title.split(" — ")[0]}</h2>
                 {view.title.includes(" — ") && (
@@ -110,10 +102,10 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
                 <dt className="text-ink-3">Хүлээгдэж буй тал</dt>
                 <dd className="m-0">
                   {view.vendorState === "done"
-                    ? "Дууссан, системд орсон — мэдэгдэл үүсэхгүй"
+                    ? "Дууссан"
                     : view.nbogState === "waiting" || view.nbogState === "working"
-                      ? "НБОГ тал — мэдэгдэл НБОГ-ын хүмүүст очно"
-                      : "Гүйцэтгэгч тал — мэдэгдэл Монмэп-д очно"}
+                      ? "НБОГ"
+                      : "Монмэп"}
                 </dd>
                 <dt className="text-ink-3">Төлөв</dt>
                 <dd className="m-0">
@@ -168,15 +160,6 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
             </div>
 
             <div className="flex flex-wrap gap-2 px-5 py-4">
-              {view.submittedAt ? (
-                <button className="btn" disabled={pending} onClick={() => act(undoSubmit)}>
-                  Ирүүлэлтийг цуцлах
-                </button>
-              ) : (
-                <button className="btn btn-primary" disabled={pending} onClick={() => act(markSubmitted)}>
-                  Тайлан ирүүлсэн гэж бүртгэх
-                </button>
-              )}
               <button className="btn" onClick={onClose}>
                 Хаах
               </button>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  IconBell, IconDashboard, IconList, IconLogout, IconSliders, Mark,
+  IconDashboard, IconList, IconLogout, IconSliders, Mark,
 } from "@/components/icons";
 import { buildViews } from "@/lib/escalation";
 import { reviewDate } from "@/lib/seed";
@@ -12,7 +12,7 @@ import { useDB } from "@/lib/store";
 const NAV = [
   { href: "/", label: "Хяналтын самбар", Icon: IconDashboard },
   { href: "/ajil", label: "Ажлын жагсаалт", Icon: IconList },
-  { href: "/medegdel", label: "Мэдэгдлийн төв", Icon: IconBell },
+  // Мэдэгдлийн төв — түр хаасан (хуудас өөрөө /medegdel хаягаар нээгдэнэ)
   { href: "/tohirgoo", label: "Дүрэм, тохиргоо", Icon: IconSliders },
 ];
 

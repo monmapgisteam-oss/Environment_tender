@@ -4,15 +4,28 @@ import { DashboardView, type CompanyRow, type Scope } from "@/components/Dashboa
 import { diffDays, monthEnd, nextMonth } from "@/lib/date";
 import { reviewDate } from "@/lib/seed";
 import { useDB } from "@/lib/store";
-import { buildViews, countBy, STATUS_RANK } from "@/lib/escalation";
+import { blockingSide, buildViews, countBy, STATUS_RANK } from "@/lib/escalation";
 import type { Milestone, MilestoneView, Status } from "@/lib/types";
 
 const QUEUE_SHOWN = 5;
+
+/** Сануулгын бүсэд байгаа эсэх */
+const isWarn = (v: MilestoneView) => v.status === "warn1" || v.status === "warn2";
+/** Хугацаа хэтэрсэн эсэх */
+const isOver = (v: MilestoneView) => v.status === "level2" || v.status === "level3";
+/** Мэдэгдэл хэн рүү чиглэж байгаа */
+const side = (v: MilestoneView) => blockingSide({ nbogState: v.nbogState });
 
 export default function DashboardPage() {
   const db = useDB();
   const asOf = reviewDate(db.settings);
   const views = buildViews(db, asOf);
+
+  /** Хамгийн ойрын хүлээгдэж буй эцсийн хугацаа */
+  const nextDue = (vs: MilestoneView[]) => {
+    const dates = vs.filter((v) => !v.submittedAt && v.daysLeft >= 0).map((v) => v.deadline).sort();
+    return dates[0] ?? null;
+  };
 
   /* Саруудын тэнхлэг */
   const months: string[] = [];
@@ -59,6 +72,13 @@ export default function DashboardPage() {
       overdue: over,
       level2: c.level2,
       level3: c.level3,
+      // Сануулга, хоцролт хэний талд байгаагаар нь задална
+      warnClient: vs.filter((v) => isWarn(v) && side(v) === "client").length,
+      warnVendor: vs.filter((v) => isWarn(v) && side(v) === "vendor").length,
+      overdueClient: vs.filter((v) => isOver(v) && side(v) === "client").length,
+      overdueVendor: vs.filter((v) => isOver(v) && side(v) === "vendor").length,
+      nextDeadline: nextDue(vs),
+      nextDeadlineDays: nextDue(vs) ? diffDays(nextDue(vs)!, asOf) : 0,
       score: due ? Math.max(0, Math.min(100, Math.round(100 - (penalty / due) * 100))) : 100,
       worstDelay: Math.max(0, ...vs.filter((v) => v.daysLeft < 0 && !v.submittedAt).map((v) => -v.daysLeft)),
       daysToEnd: Math.max(0, diffDays(end, asOf)),

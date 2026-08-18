@@ -43,7 +43,7 @@ export default function TasksPage() {
   return (
     <main className="page-fill flex min-h-0 flex-1 flex-col gap-3 p-3">
       <Suspense fallback={<p className="card-note">Ачаалж байна…</p>}>
-        <TaskExplorer rows={rows} stages={stages} companyName={company.name} contractNo={company.contractNo} />
+        <TaskExplorer rows={rows} stages={stages} companyName={company.name} />
       </Suspense>
     </main>
   );
