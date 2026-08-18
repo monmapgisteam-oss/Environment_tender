@@ -266,10 +266,13 @@ export function TaskExplorer({
                         dept.rows.map((r) => {
                           const late = r.status === "level2" || r.status === "level3";
                           return (
-                            <button
+                            <div
                               key={r.id}
+                              role="button"
+                              tabIndex={0}
                               onClick={() => setFocus(r.id)}
-                              className="grid w-full grid-cols-[1fr_130px_104px_82px_142px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12 text-left hover:bg-surface-2"
+                              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setFocus(r.id)}
+                              className="grid w-full cursor-pointer grid-cols-[1fr_130px_104px_82px_142px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12 text-left hover:bg-surface-2"
                               style={late ? { background: "color-mix(in srgb, var(--crit-soft) 55%, transparent)" } : undefined}
                             >
                               <span className="flex min-w-0 gap-2.5">
@@ -292,7 +295,7 @@ export function TaskExplorer({
                                 </span>
                               </span>
                               <span className={`pill pill-${r.status}`}>{STATUS_LABEL[r.status]}</span>
-                            </button>
+                            </div>
                           );
                         })}
                     </div>
