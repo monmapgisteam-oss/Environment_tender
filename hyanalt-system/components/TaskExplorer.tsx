@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { MilestoneDrawer } from "@/components/MilestoneDrawer";
 import { IconAlert, IconChevronRight, IconSearch } from "@/components/icons";
+import { StateSelect } from "@/components/StateSelect";
 import { STATUS_LABEL, STATUS_RANK } from "@/lib/escalation";
 import type { Status } from "@/lib/types";
 
@@ -21,6 +22,8 @@ export interface Row {
   daysLeft: number;
   submittedAt: string | null;
   lastNoteDate: string | null;
+  nbogState?: string;
+  vendorState?: string;
   /** Хамгийн сүүлд хэн рүү мэдэгдэл явсан */
   notifiedTo: string | null;
 }
@@ -52,6 +55,15 @@ const QUICK: { key: string; label: string; match: (r: Row) => boolean }[] = [
   { key: "running", label: "Хэрэгжиж буй", match: (r) => r.status === "active" },
   { key: "finished", label: "Ирүүлсэн", match: (r) => r.status === "done" || r.status === "late" },
 ];
+
+/** CSV-д бичих гар удирдлагатай төлөвийн нэрс */
+const NBOG_LABEL: Record<string, string> = {
+  wait_vendor: "Монмэп-с хүлээгдэж буй",
+  wait_client: "НБОГ-с хүлээгдэж буй",
+  in_progress: "Хийгдэж байгаа",
+  done: "Дууссан",
+};
+const VENDOR_LABEL: Record<string, string> = { yes: "Тийм", in_progress: "Хийгдэж байгаа" };
 
 interface Counts {
   total: number;
@@ -131,10 +143,11 @@ export function TaskExplorer({
   const overdueCount = rows.filter((r) => r.status === "level2" || r.status === "level3").length;
 
   const exportCsv = () => {
-    const head = ["Үе шат", "Хариуцах хэлтэс", "Бүлэг", "Ажил", "Эцсийн хугацаа", "Төлөв", "Ирүүлсэн", "Сүүлийн мэдэгдэл"];
+    const head = ["Үе шат", "Хариуцах хэлтэс", "Бүлэг", "Ажил", "НБОГ", "Монмэп", "Эцсийн хугацаа", "Системийн төлөв", "Ирүүлсэн"];
     const body = filtered.map((r) =>
-      [`${r.stageNo}. ${r.stageName}`, r.deptName, r.group ?? "", r.title, r.deadline, STATUS_LABEL[r.status],
-        r.submittedAt ?? "", r.lastNoteDate ?? ""]
+      [`${r.stageNo}. ${r.stageName}`, r.deptName, r.group ?? "", r.title,
+        NBOG_LABEL[r.nbogState ?? ""] ?? "", VENDOR_LABEL[r.vendorState ?? ""] ?? "",
+        r.deadline, STATUS_LABEL[r.status], r.submittedAt ?? ""]
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
         .join(","),
     );
@@ -201,6 +214,15 @@ export function TaskExplorer({
           <span className="ml-auto text-[11px] text-ink-3">Үе шат → хэлтэс → ажил дарааллаар задарна</span>
         </div>
 
+        {/* Баганын нэр */}
+        <div className="eyebrow grid flex-none grid-cols-[1fr_130px_104px_82px_142px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12">
+          <span>Ажил</span>
+          <span>НБОГ</span>
+          <span>Монмэп</span>
+          <span className="text-right">Хугацаа</span>
+          <span>Системийн төлөв</span>
+        </div>
+
         <div className="min-h-0 flex-1 overflow-y-auto">
           {tree.length === 0 && <p className="card-note px-3.5 py-3">Энэ нөхцөлд тохирох ажил алга.</p>}
 
@@ -247,7 +269,7 @@ export function TaskExplorer({
                             <button
                               key={r.id}
                               onClick={() => setFocus(r.id)}
-                              className="grid w-full grid-cols-[1fr_auto_auto_auto] items-center gap-3 border-b border-line py-1.5 pr-3.5 pl-14 text-left hover:bg-surface-2"
+                              className="grid w-full grid-cols-[1fr_130px_104px_82px_142px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12 text-left hover:bg-surface-2"
                               style={late ? { background: "color-mix(in srgb, var(--crit-soft) 55%, transparent)" } : undefined}
                             >
                               <span className="flex min-w-0 gap-2.5">
@@ -257,6 +279,8 @@ export function TaskExplorer({
                                   {r.group && <span className="block truncate text-[10px] text-ink-3">{r.group}</span>}
                                 </span>
                               </span>
+                              <StateSelect side="nbog" milestoneId={r.id} value={r.nbogState} width={130} />
+                              <StateSelect side="vendor" milestoneId={r.id} value={r.vendorState} width={104} />
                               <span className="num text-right text-[11px] whitespace-nowrap text-ink-2">
                                 {r.deadline}
                                 <span className="block text-[10px]" style={{ color: late ? "var(--crit)" : "var(--ink-3)" }}>
@@ -268,9 +292,6 @@ export function TaskExplorer({
                                 </span>
                               </span>
                               <span className={`pill pill-${r.status}`}>{STATUS_LABEL[r.status]}</span>
-                              <span className="w-[150px] truncate text-right text-[10.5px] text-ink-3">
-                                {r.notifiedTo ?? "—"}
-                              </span>
                             </button>
                           );
                         })}

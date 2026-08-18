@@ -10,6 +10,12 @@ export type Status =
   | "done" // хугацаандаа ирүүлсэн
   | "late"; // хоцорч ирүүлсэн
 
+/** Захиалагч (НБОГ) талын гар удирдлагатай төлөв */
+export type NbogState = "wait_vendor" | "wait_client" | "in_progress" | "done";
+
+/** Гүйцэтгэгч (Монмэп) талын гар удирдлагатай төлөв */
+export type VendorState = "yes" | "in_progress";
+
 export type RuleKey = "reminder" | "final" | "level2" | "level3";
 
 export interface Recipient {
@@ -89,6 +95,10 @@ export interface Milestone {
   submittedAt: string | null;
   /** Хүнээр гараар бүртгэсэн эсэх (туршилтын дуурайлт үүнийг дарж бичихгүй) */
   manual?: boolean;
+  /** Захиалагч талын тэмдэглэсэн төлөв */
+  nbogState?: NbogState;
+  /** Гүйцэтгэгч талын тэмдэглэсэн төлөв */
+  vendorState?: VendorState;
   /** Зөвхөн туршилтын өгөгдөл: тайлан ирэх төлөвлөгдсөн огноо (null = ирэхгүй) */
   demoArrivesAt: string | null;
 }
@@ -159,6 +169,8 @@ export interface MilestoneView {
   /** Эерэг = үлдсэн хоног, сөрөг = хэтэрсэн хоног */
   daysLeft: number;
   submittedAt: string | null;
+  nbogState?: NbogState;
+  vendorState?: VendorState;
   steps: LadderStep[];
   lastNotification: Notification | null;
 }

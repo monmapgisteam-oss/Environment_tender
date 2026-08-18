@@ -11,7 +11,7 @@
 import { useSyncExternalStore } from "react";
 import { runEscalation } from "./escalation";
 import { buildSeed, reviewDate } from "./seed";
-import type { DB, Settings } from "./types";
+import type { DB, NbogState, Settings, VendorState } from "./types";
 
 const KEY = "hyanalt-state-v1";
 
@@ -19,9 +19,11 @@ interface Persisted {
   settings: Partial<Settings>;
   /** Хяналтын цэгийн дугаар → тайлан ирүүлсэн огноо (null = ирүүлээгүй) */
   overrides: Record<string, string | null>;
+  /** Хяналтын цэг → гар удирдлагатай төлөв (НБОГ / Монмэп) */
+  states: Record<string, { nbog?: NbogState; vendor?: VendorState }>;
 }
 
-let persisted: Persisted = { settings: {}, overrides: {} };
+let persisted: Persisted = { settings: {}, overrides: {}, states: {} };
 let loaded = false;
 let cache: DB | null = null;
 let serverCache: DB | null = null;
@@ -34,7 +36,7 @@ function loadPersisted() {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as Persisted;
-      persisted = { settings: p.settings ?? {}, overrides: p.overrides ?? {} };
+      persisted = { settings: p.settings ?? {}, overrides: p.overrides ?? {}, states: p.states ?? {} };
     }
   } catch {
     // хадгалалт боломжгүй бол анхны төлөвөөр ажиллана
@@ -59,6 +61,13 @@ function rebuild(): DB {
     if (m) {
       m.submittedAt = value;
       m.manual = true;
+    }
+  }
+  for (const [id, st] of Object.entries(persisted.states)) {
+    const m = byId.get(id);
+    if (m) {
+      m.nbogState = st.nbog;
+      m.vendorState = st.vendor;
     }
   }
   runEscalation(db, reviewDate(db.settings));
@@ -121,8 +130,20 @@ export function refresh() {
   commit();
 }
 
+/** Захиалагч (НБОГ) талын төлөвийг тэмдэглэх */
+export function setNbogState(milestoneId: string, value: NbogState | undefined) {
+  persisted.states[milestoneId] = { ...persisted.states[milestoneId], nbog: value };
+  commit();
+}
+
+/** Гүйцэтгэгч (Монмэп) талын төлөвийг тэмдэглэх */
+export function setVendorState(milestoneId: string, value: VendorState | undefined) {
+  persisted.states[milestoneId] = { ...persisted.states[milestoneId], vendor: value };
+  commit();
+}
+
 /** Бүх өөрчлөлтийг устгаж анхны төлөвт буцаана */
 export function resetAll() {
-  persisted = { settings: {}, overrides: {} };
+  persisted = { settings: {}, overrides: {}, states: {} };
   commit();
 }

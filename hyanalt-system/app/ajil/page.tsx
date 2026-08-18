@@ -30,6 +30,8 @@ export default function TasksPage() {
       daysLeft: v.daysLeft,
       submittedAt: v.submittedAt,
       lastNoteDate: v.lastNotification?.dueOn ?? null,
+      nbogState: v.nbogState,
+      vendorState: v.vendorState,
       notifiedTo: v.lastNotification?.recipients.map((r) => r.name).join(", ") ?? null,
     }));
 

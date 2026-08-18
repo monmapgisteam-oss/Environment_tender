@@ -36,6 +36,10 @@
   --crit-soft: #261a17;
   --sev: #a2647f;
   --sev-soft: #24181e;
+  --info: #6b93cf;
+  --info-soft: #172230;
+  --plum: #a878c4;
+  --plum-soft: #221a2b;
 
   --radius: 14px;
 }
@@ -73,6 +77,10 @@
   --crit-soft: #fae7e6;
   --sev: #8d4763;
   --sev-soft: #f7e8ee;
+  --info: #2f5fa8;
+  --info-soft: #e5edfa;
+  --plum: #7c4c9e;
+  --plum-soft: #f2e9f8;
 }
 
 html,
@@ -128,6 +136,10 @@ body {
   --color-crit-soft: var(--crit-soft);
   --color-sev: var(--sev);
   --color-sev-soft: var(--sev-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-plum: var(--plum);
+  --color-plum-soft: var(--plum-soft);
 
   --font-display: var(--f-display), "Segoe UI", system-ui, sans-serif;
   --font-sans: var(--f-sans), "Segoe UI", system-ui, sans-serif;

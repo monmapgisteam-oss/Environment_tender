@@ -253,6 +253,8 @@ export function buildViews(db: DB, asOf: string): MilestoneView[] {
       status: computeStatus(m, stage, asOf, s),
       daysLeft: diffDays(m.deadline, asOf),
       submittedAt: submitted,
+      nbogState: m.nbogState,
+      vendorState: m.vendorState,
       steps,
       lastNotification: history.length ? history[history.length - 1] : null,
     };
