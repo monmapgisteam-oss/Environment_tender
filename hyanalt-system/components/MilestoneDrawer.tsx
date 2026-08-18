@@ -69,9 +69,13 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
                 <div className="eyebrow">
                   {view.companyNo}. {view.companyName} · {view.contractNo}
                 </div>
-                <h2 className="mt-1 text-[17px] leading-snug font-bold" style={{ fontFamily: "var(--font-display)" }}>
-                  {view.title}
-                </h2>
+                {/* Урт нэрийг тайлбараас нь салгаж, товч гарчиг + жижиг тайлбар болгоно */}
+                <h2 className="mt-1 text-[13.5px] leading-snug font-semibold">{view.title.split(" — ")[0]}</h2>
+                {view.title.includes(" — ") && (
+                  <p className="mt-0.5 text-[11.5px] leading-snug text-ink-2">
+                    {view.title.split(" — ").slice(1).join(" — ")}
+                  </p>
+                )}
                 <div className="mt-2">
                   <StatusPill status={view.status} />
                 </div>

@@ -20,6 +20,8 @@ export function TopBar() {
   const companies = db.companies.length;
   const reviewDateValue = reviewOf(db.settings);
   const path = usePathname();
+  // Статик экспортод зам ард нь ташуу зураастай ирдэг (/ajil/) — гарчиг олдохгүй байхаас сэргийлнэ
+  const pathKey = path.replace(/\/+$/, "") || "/";
   const router = useRouter();
   const [pending, start] = useTransition();
   const [q, setQ] = useState("");
@@ -35,7 +37,7 @@ export function TopBar() {
   return (
     <header className="flex flex-none flex-wrap items-center gap-3 border-b border-line px-4 py-2.5 md:px-5 xl:h-[53px] xl:flex-nowrap xl:py-0">
       <div className="min-w-0">
-        <h1 className="text-[15px] leading-tight font-semibold">{TITLES[path] ?? "Хяналтын самбар"}</h1>
+        <h1 className="text-[15px] leading-tight font-semibold">{TITLES[pathKey] ?? "Хяналтын самбар"}</h1>
         <p className="text-[10.5px] text-ink-3">
           {client} · <span className="num">{companies}</span> гүйцэтгэгч байгууллага
         </p>

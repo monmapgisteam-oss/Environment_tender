@@ -18,6 +18,7 @@ const NAV = [
 
 export function Rail() {
   const path = usePathname();
+  const pathKey = path.replace(/\/+$/, "") || "/";
   const db = useDB();
   const views = buildViews(db, reviewDate(db.settings));
   const attention = views.filter((v) => v.status === "level2" || v.status === "level3").length;
@@ -30,7 +31,7 @@ export function Rail() {
 
       <nav className="flex items-center gap-1.5 md:mt-3 md:flex-col">
         {NAV.map(({ href, label, Icon }) => {
-          const active = href === "/" ? path === "/" : path.startsWith(href);
+          const active = href === "/" ? pathKey === "/" : pathKey.startsWith(href);
           return (
             <Link
               key={href}

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { MilestoneDrawer } from "@/components/MilestoneDrawer";
-import { IconAlert, IconSearch } from "@/components/icons";
+import { IconAlert, IconChevronRight, IconSearch } from "@/components/icons";
 import { STATUS_LABEL, STATUS_RANK } from "@/lib/escalation";
 import type { Status } from "@/lib/types";
 
@@ -11,10 +11,6 @@ export interface Row {
   id: string;
   title: string;
   group?: string;
-  companyId: string;
-  companyNo: number;
-  companyName: string;
-  contractNo: string;
   deptId: string;
   deptName: string;
   deptHead: string;
@@ -29,6 +25,13 @@ export interface Row {
   notifiedTo: string | null;
 }
 
+export interface StageInfo {
+  no: number;
+  name: string;
+  start: string;
+  end: string;
+}
+
 const STRIPE: Record<Status, string> = {
   planned: "var(--surface-3)",
   active: "var(--data)",
@@ -40,7 +43,7 @@ const STRIPE: Record<Status, string> = {
   late: "var(--ok)",
 };
 
-/** Хурдан шүүлтүүр — хэрэглэгчийн хамгийн түгээмэл асуултууд */
+/** Хурдан шүүлтүүр — хамгийн түгээмэл асуултууд */
 const QUICK: { key: string; label: string; match: (r: Row) => boolean }[] = [
   { key: "", label: "Бүх ажил", match: () => true },
   { key: "overdue", label: "Хугацаа хэтэрсэн", match: (r) => r.status === "level2" || r.status === "level3" },
@@ -50,53 +53,88 @@ const QUICK: { key: string; label: string; match: (r: Row) => boolean }[] = [
   { key: "finished", label: "Ирүүлсэн", match: (r) => r.status === "done" || r.status === "late" },
 ];
 
-const LIMIT = 300;
+interface Counts {
+  total: number;
+  done: number;
+  warn: number;
+  over: number;
+}
+
+function count(rows: Row[]): Counts {
+  return {
+    total: rows.length,
+    done: rows.filter((r) => r.status === "done" || r.status === "late").length,
+    warn: rows.filter((r) => r.status === "warn1" || r.status === "warn2").length,
+    over: rows.filter((r) => r.status === "level2" || r.status === "level3").length,
+  };
+}
 
 export function TaskExplorer({
   rows,
-  companies,
-  departments,
+  stages,
+  companyName,
+  contractNo,
 }: {
   rows: Row[];
-  companies: { id: string; no: number; name: string }[];
-  departments: { id: string; name: string }[];
+  stages: StageInfo[];
+  companyName: string;
+  contractNo: string;
 }) {
   const params = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? "");
-  const [company, setCompany] = useState(params.get("company") ?? "");
-  const [dept, setDept] = useState(params.get("dept") ?? "");
   const [quick, setQuick] = useState(params.get("status") ?? "");
   const [focus, setFocus] = useState<string | null>(params.get("focus") || null);
-
-  const base = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (company && r.companyId !== company) return false;
-      if (dept && r.deptId !== dept) return false;
-      if (needle && !`${r.title} ${r.companyName}`.toLowerCase().includes(needle)) return false;
-      return true;
-    });
-  }, [rows, q, company, dept]);
+  // Анх зөвхөн эхний үе шат задарсан байна — доош гүйлгэх зүйл бага байх
+  const [openStages, setOpenStages] = useState<Set<number>>(new Set([stages[0]?.no ?? 1]));
+  const [openDepts, setOpenDepts] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase();
     const rule = QUICK.find((x) => x.key === quick) ?? QUICK[0];
-    return base
-      .filter(rule.match)
-      .sort(
-        (a, b) =>
-          STATUS_RANK[a.status] - STATUS_RANK[b.status] ||
-          a.deadline.localeCompare(b.deadline) ||
-          a.companyNo - b.companyNo,
-      );
-  }, [base, quick]);
+    return rows.filter((r) => {
+      if (!rule.match(r)) return false;
+      if (needle && !`${r.title} ${r.group ?? ""} ${r.deptName}`.toLowerCase().includes(needle)) return false;
+      return true;
+    });
+  }, [rows, q, quick]);
 
-  const overdueCount = base.filter((r) => r.status === "level2" || r.status === "level3").length;
+  /** Үе шат → хэлтэс → ажил */
+  const tree = useMemo(() => {
+    return stages
+      .map((stage) => {
+        const stageRows = filtered.filter((r) => r.stageNo === stage.no);
+        const depts = [...new Map(stageRows.map((r) => [r.deptId, r])).values()]
+          .map((first) => {
+            const deptRows = stageRows
+              .filter((r) => r.deptId === first.deptId)
+              .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || a.title.localeCompare(b.title));
+            return { id: first.deptId, name: first.deptName, head: first.deptHead, rows: deptRows, counts: count(deptRows) };
+          })
+          .sort((a, b) => b.counts.over - a.counts.over || a.name.localeCompare(b.name));
+        return { stage, depts, counts: count(stageRows) };
+      })
+      .filter((s) => s.counts.total > 0);
+  }, [filtered, stages]);
+
+  // Хайлт/шүүлтүүр идэвхтэй үед олдсон бүлгүүд өөрөө задарна
+  const searching = Boolean(q.trim()) || Boolean(quick);
+  const stageOpen = (no: number) => searching || openStages.has(no);
+  const deptOpen = (key: string) => searching || openDepts.has(key);
+
+  const toggle = <T,>(set: Set<T>, value: T, apply: (s: Set<T>) => void) => {
+    const next = new Set(set);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    apply(next);
+  };
+
+  const overdueCount = rows.filter((r) => r.status === "level2" || r.status === "level3").length;
 
   const exportCsv = () => {
-    const head = ["Гүйцэтгэгч", "Гэрээ", "Ажил", "Хариуцах хэлтэс", "Үе шат", "Эцсийн хугацаа", "Төлөв", "Ирүүлсэн", "Сүүлийн мэдэгдэл"];
+    const head = ["Үе шат", "Хариуцах хэлтэс", "Бүлэг", "Ажил", "Эцсийн хугацаа", "Төлөв", "Ирүүлсэн", "Сүүлийн мэдэгдэл"];
     const body = filtered.map((r) =>
-      [r.companyName, r.contractNo, r.title, r.deptName, `${r.stageNo}. ${r.stageName}`, r.deadline,
-        STATUS_LABEL[r.status], r.submittedAt ?? "", r.lastNoteDate ?? ""]
+      [`${r.stageNo}. ${r.stageName}`, r.deptName, r.group ?? "", r.title, r.deadline, STATUS_LABEL[r.status],
+        r.submittedAt ?? "", r.lastNoteDate ?? ""]
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
         .join(","),
     );
@@ -104,14 +142,13 @@ export function TaskExplorer({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "guitsetgeliin-tailan.csv";
+    a.download = "monmap-guitsetgel.csv";
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <>
-      {/* Хугацаа хэтэрсэн ажлын анхааруулга */}
       {overdueCount > 0 && quick !== "overdue" && (
         <button
           onClick={() => setQuick("overdue")}
@@ -120,61 +157,39 @@ export function TaskExplorer({
         >
           <IconAlert className="size-4 flex-none text-crit" />
           <b className="text-[12.5px] text-crit">{overdueCount} ажлын хугацаа хэтэрсэн</b>
-          <span className="text-[12px] text-ink-2">шатлан мэдээллэх дүрэм ажилласан</span>
           <span className="ml-auto text-[12px] text-crit">Зөвхөн эдгээрийг харах →</span>
         </button>
       )}
 
       <div className="card min-h-0 flex-1">
-        {/* Хайлт ба шүүлтүүр */}
         <div className="flex flex-none flex-wrap items-center gap-2 border-b border-line px-3.5 py-2.5">
-          <div className="relative">
+          <div>
+            <b className="text-[12.5px]">{companyName}</b>
+            <span className="num ml-2 text-[10.5px] text-ink-3">{contractNo}</span>
+          </div>
+          <div className="relative ml-auto">
             <IconSearch className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-3" />
             <input
-              className="field w-[210px] pl-8"
-              placeholder="Ажил, компаниар хайх…"
+              className="field w-[220px] pl-8"
+              placeholder="Ажлын нэрээр хайх…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
           </div>
-          <select className="field w-[190px]" value={company} onChange={(e) => setCompany(e.target.value)}>
-            <option value="">Бүх гүйцэтгэгч ({companies.length})</option>
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.no}. {c.name}
-              </option>
-            ))}
-          </select>
-          <select className="field w-[190px]" value={dept} onChange={(e) => setDept(e.target.value)}>
-            <option value="">Хариуцах бүх хэлтэс</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-          {(q || company || dept || quick) && (
-            <button
-              className="chip"
-              onClick={() => {
-                setQ("");
-                setCompany("");
-                setDept("");
-                setQuick("");
-              }}
-            >
-              Шүүлтүүр цэвэрлэх
-            </button>
-          )}
-          <button className="chip ml-auto" onClick={exportCsv}>
+          <button className="chip" onClick={() => { setOpenStages(new Set(stages.map((s) => s.no))); setOpenDepts(new Set()); }}>
+            Бүгдийг нээх
+          </button>
+          <button className="chip" onClick={() => { setOpenStages(new Set()); setOpenDepts(new Set()); }}>
+            Бүгдийг хаах
+          </button>
+          <button className="chip" onClick={exportCsv}>
             CSV татах
           </button>
         </div>
 
-        {/* Хурдан шүүлтүүр — тоогоор нь */}
         <div className="flex flex-none flex-wrap items-center gap-1.5 border-b border-line px-3.5 py-2">
           {QUICK.map((f) => {
-            const n = base.filter(f.match).length;
+            const n = rows.filter(f.match).length;
             const on = quick === f.key;
             return (
               <button key={f.key} className={`chip ${on ? "chip-on" : ""}`} onClick={() => setQuick(f.key)}>
@@ -183,94 +198,92 @@ export function TaskExplorer({
               </button>
             );
           })}
-          <span className="ml-auto text-[11px] text-ink-3">Мөр дээр дарж мэдэгдлийн явцыг харна</span>
+          <span className="ml-auto text-[11px] text-ink-3">Үе шат → хэлтэс → ажил дарааллаар задарна</span>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full border-collapse text-[12.5px]">
-            <thead>
-              <tr>
-                <th className="table-head">Ажил</th>
-                <th className="table-head">Гүйцэтгэгч компани</th>
-                <th className="table-head">Үе шат</th>
-                <th className="table-head">Эцсийн хугацаа</th>
-                <th className="table-head">Төлөв</th>
-                <th className="table-head">Хэн рүү мэдэгдсэн</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.slice(0, LIMIT).map((r) => {
-                const late = r.status === "level2" || r.status === "level3";
-                return (
-                  <tr
-                    key={r.id}
-                    onClick={() => setFocus(r.id)}
-                    className="cursor-pointer hover:bg-surface-2"
-                    style={late ? { background: "color-mix(in srgb, var(--crit-soft) 60%, transparent)" } : undefined}
-                  >
-                    <td className="cell max-w-[380px]">
-                      <div className="flex gap-2.5">
-                        <span className="w-0.5 flex-none rounded-full" style={{ background: STRIPE[r.status] }} />
-                        <div className="min-w-0">
-                          <div className="truncate">{r.title}</div>
-                          <div className="truncate text-[10.5px] text-ink-3">
-                            {r.group ? `${r.group} · ` : ""}Хариуцах: {r.deptName} · {r.deptHead}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="cell max-w-[190px]">
-                      <div className="truncate text-ink-2">
-                        <span className="num text-ink-3">{r.companyNo}.</span> {r.companyName}
-                      </div>
-                      <div className="num truncate text-[10px] text-ink-3">{r.contractNo}</div>
-                    </td>
-                    <td className="cell max-w-[150px]">
-                      <div className="truncate text-ink-2">
-                        {r.stageNo}. {r.stageName}
-                      </div>
-                    </td>
-                    <td className="cell whitespace-nowrap">
-                      <div className="num text-ink-2">{r.deadline}</div>
-                      <div className="num text-[10px]" style={{ color: late ? "var(--crit)" : "var(--ink-3)" }}>
-                        {r.submittedAt
-                          ? `ирүүлсэн ${r.submittedAt}`
-                          : r.daysLeft < 0
-                            ? `${-r.daysLeft} хоног хэтэрсэн`
-                            : `${r.daysLeft} хоног үлдсэн`}
-                      </div>
-                    </td>
-                    <td className="cell">
-                      <span className={`pill pill-${r.status}`}>{STATUS_LABEL[r.status]}</span>
-                    </td>
-                    <td className="cell max-w-[210px]">
-                      <div className="truncate text-[11.5px] text-ink-2">{r.notifiedTo ?? "—"}</div>
-                      {r.lastNoteDate && <div className="num text-[10px] text-ink-3">{r.lastNoteDate}</div>}
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length > LIMIT && (
-                <tr>
-                  <td className="cell text-ink-3" colSpan={6}>
-                    … нийт {filtered.length} бичлэгээс эхний {LIMIT}-г харуулав. Компани эсвэл хэлтсээр шүүнэ үү.
-                  </td>
-                </tr>
-              )}
-              {filtered.length === 0 && (
-                <tr>
-                  <td className="cell text-center text-ink-3" colSpan={6}>
-                    Энэ нөхцөлд тохирох ажил алга.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {tree.length === 0 && <p className="card-note px-3.5 py-3">Энэ нөхцөлд тохирох ажил алга.</p>}
+
+          {tree.map(({ stage, depts, counts }) => (
+            <div key={stage.no}>
+              {/* Үе шат */}
+              <button
+                onClick={() => toggle(openStages, stage.no, setOpenStages)}
+                className="flex w-full items-center gap-2.5 border-b border-line bg-surface-2 px-3.5 py-2 text-left hover:bg-surface-3"
+              >
+                <IconChevronRight
+                  className={`size-3.5 flex-none text-ink-3 transition-transform ${stageOpen(stage.no) ? "rotate-90" : ""}`}
+                />
+                <span className="num text-[11px] text-ink-3">{stage.no}</span>
+                <b className="text-[12.5px]">{stage.name}</b>
+                <span className="num text-[10.5px] text-ink-3">
+                  {stage.start} → {stage.end}
+                </span>
+                <Summary counts={counts} className="ml-auto" />
+              </button>
+
+              {stageOpen(stage.no) &&
+                depts.map((dept) => {
+                  const key = `${stage.no}|${dept.id}`;
+                  return (
+                    <div key={key}>
+                      {/* Хэлтэс */}
+                      <button
+                        onClick={() => toggle(openDepts, key, setOpenDepts)}
+                        className="flex w-full items-center gap-2.5 border-b border-line px-3.5 py-1.5 pl-8 text-left hover:bg-surface-2"
+                      >
+                        <IconChevronRight
+                          className={`size-3 flex-none text-ink-3 transition-transform ${deptOpen(key) ? "rotate-90" : ""}`}
+                        />
+                        <span className="truncate text-[12px] text-ink-2">{dept.name}</span>
+                        <span className="num text-[10.5px] text-ink-3">{dept.head}</span>
+                        <Summary counts={dept.counts} className="ml-auto" />
+                      </button>
+
+                      {deptOpen(key) &&
+                        dept.rows.map((r) => {
+                          const late = r.status === "level2" || r.status === "level3";
+                          return (
+                            <button
+                              key={r.id}
+                              onClick={() => setFocus(r.id)}
+                              className="grid w-full grid-cols-[1fr_auto_auto_auto] items-center gap-3 border-b border-line py-1.5 pr-3.5 pl-14 text-left hover:bg-surface-2"
+                              style={late ? { background: "color-mix(in srgb, var(--crit-soft) 55%, transparent)" } : undefined}
+                            >
+                              <span className="flex min-w-0 gap-2.5">
+                                <i className="w-0.5 flex-none rounded-full" style={{ background: STRIPE[r.status] }} />
+                                <span className="min-w-0">
+                                  <span className="block truncate text-[12px]">{r.title}</span>
+                                  {r.group && <span className="block truncate text-[10px] text-ink-3">{r.group}</span>}
+                                </span>
+                              </span>
+                              <span className="num text-right text-[11px] whitespace-nowrap text-ink-2">
+                                {r.deadline}
+                                <span className="block text-[10px]" style={{ color: late ? "var(--crit)" : "var(--ink-3)" }}>
+                                  {r.submittedAt
+                                    ? `ирүүлсэн ${r.submittedAt}`
+                                    : r.daysLeft < 0
+                                      ? `${-r.daysLeft} хоног хэтэрсэн`
+                                      : `${r.daysLeft} хоног үлдсэн`}
+                                </span>
+                              </span>
+                              <span className={`pill pill-${r.status}`}>{STATUS_LABEL[r.status]}</span>
+                              <span className="w-[150px] truncate text-right text-[10.5px] text-ink-3">
+                                {r.notifiedTo ?? "—"}
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  );
+                })}
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-none items-center gap-3 border-t border-line px-3.5 py-2 text-[11px] text-ink-3">
           <span>
-            Харуулсан: <span className="num text-ink-2">{Math.min(filtered.length, LIMIT)}</span> / {filtered.length}
+            Харуулсан: <span className="num text-ink-2">{filtered.length}</span> / {rows.length} хяналтын цэг
           </span>
           <span className="ml-auto flex flex-wrap gap-3">
             {(["level3", "level2", "warn2", "active", "done"] as Status[]).map((s) => (
@@ -285,5 +298,31 @@ export function TaskExplorer({
 
       <MilestoneDrawer id={focus} onClose={() => setFocus(null)} />
     </>
+  );
+}
+
+/** Бүлгийн товч тоо — ирүүлсэн / сануулга / хэтэрсэн */
+function Summary({ counts, className = "" }: { counts: Counts; className?: string }) {
+  return (
+    <span className={`flex flex-none items-center gap-2.5 text-[10.5px] ${className}`}>
+      <span className="num text-ink-3">{counts.total} ажил</span>
+      <span className="num" style={{ color: "var(--ok)" }}>
+        {counts.done} ирүүлсэн
+      </span>
+      {counts.warn > 0 && (
+        <span className="num" style={{ color: "var(--warn)" }}>
+          {counts.warn} сануулга
+        </span>
+      )}
+      {counts.over > 0 && (
+        <span className="num" style={{ color: "var(--crit)" }}>
+          {counts.over} хэтэрсэн
+        </span>
+      )}
+      <span className="flex h-1.5 w-[46px] overflow-hidden rounded-full bg-surface-3">
+        <i style={{ width: `${(counts.done / counts.total) * 100}%`, background: "var(--ok)" }} />
+        <i style={{ width: `${(counts.over / counts.total) * 100}%`, background: "var(--crit)" }} />
+      </span>
+    </span>
   );
 }
