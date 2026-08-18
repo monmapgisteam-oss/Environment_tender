@@ -12,10 +12,10 @@ const RULE_UI: {
   color: string;
   after: boolean;
 }[] = [
-  { key: "reminder", field: "reminderLead", label: "Урьдчилсан сануулга", audience: "Гүйцэтгэгч байгууллага", color: "var(--warn)", after: false },
-  { key: "final", field: "finalLead", label: "Эцсийн сануулга", audience: "Гүйцэтгэгч байгууллага", color: "var(--warn)", after: false },
-  { key: "level2", field: "deptHeadAfter", label: "Хэлтсийн даргад мэдэгдэх", audience: "Захиалагчийн хэлтсийн дарга + гүйцэтгэгч", color: "var(--crit)", after: true },
-  { key: "level3", field: "directorAfter", label: "Газрын даргад мэдэгдэх", audience: "Газрын дарга + гүйцэтгэх захирал", color: "var(--sev)", after: true },
+  { key: "reminder", field: "reminderLead", label: "Урьдчилсан сануулга", audience: "Гүйцэтгэгчийн мэргэжилтэн", color: "var(--warn)", after: false },
+  { key: "final", field: "finalLead", label: "Эцсийн сануулга", audience: "Гүйцэтгэгчийн төслийн хариуцагч", color: "var(--warn)", after: false },
+  { key: "level2", field: "deptHeadAfter", label: "Хэлтсийн даргад мэдэгдэх", audience: "Хэлтсийн дарга (гүйцэтгэгчид хуулбар)", color: "var(--crit)", after: true },
+  { key: "level3", field: "directorAfter", label: "Газрын даргад мэдэгдэх", audience: "Зөвхөн газрын дарга", color: "var(--sev)", after: true },
 ];
 
 export function SettingsForm({ settings }: { settings: Settings }) {

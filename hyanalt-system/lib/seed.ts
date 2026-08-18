@@ -38,12 +38,12 @@ export function buildSeed(): DB {
   const tasks: Task[] = [];
   const milestones: Milestone[] = [];
 
-  const addPlan = (company: Company, companyStages: Stage[], plan: { deptId: string; title: string }[]) => {
+  const addPlan = (company: Company, companyStages: Stage[], plan: { deptId: string; title: string; group?: string }[]) => {
     companies.push(company);
     stages.push(...companyStages);
     plan.forEach((t, i) => {
       const taskId = `${company.id}-t${i + 1}`;
-      tasks.push({ id: taskId, companyId: company.id, deptId: t.deptId, no: i + 1, title: t.title });
+      tasks.push({ id: taskId, companyId: company.id, deptId: t.deptId, no: i + 1, title: t.title, group: t.group });
       for (const stage of companyStages) {
         milestones.push({
           id: `${taskId}-s${stage.no}`,
@@ -71,6 +71,7 @@ export function buildSeed(): DB {
       end: "2027-02-14",
       deptId: "sam",
       amount: 890,
+      specialist: { name: "С. Маралгоо", role: "ГМС-ийн мэргэжилтэн", org: '"Монмэп" ХХК' },
       pm: { name: "Т. Билгүүнтөгс", role: "ГМС-ийн ерөнхий инженер", org: '"Монмэп" ХХК' },
       ceo: { name: "С. Энх-Амгалан", role: "Гүйцэтгэх захирал", org: '"Монмэп" ХХК' },
     },

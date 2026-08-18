@@ -1,12 +1,11 @@
 /**
  * Мэдэгдэл, шатлан мэдээллэх дүрмийн хөдөлгүүр.
  *
- * Зарчим:
- *   Х−reminderLead   → Гүйцэтгэгч компанид урьдчилсан сануулга
- *   Х−finalLead      → Гүйцэтгэгч компанид эцсийн сануулга
- *   Х+deptHeadAfter  → Захиалагчийн холбогдох хэлтсийн даргад мэдэгдэнэ
- *   Х+directorAfter  → Газрын дарга болон гүйцэтгэгчийн захиралд мэдэгдэнэ
- * (Х = үе шатны эцсийн хугацаа)
+ * Зарчим (Х = үе шатны эцсийн хугацаа):
+ *   Х−reminderLead   → Гүйцэтгэгчийн мэргэжилтэнд урьдчилсан сануулга
+ *   Х−finalLead      → Гүйцэтгэгчийн төслийн хариуцагчид эцсийн сануулга
+ *   Х+deptHeadAfter  → Захиалагчийн холбогдох хэлтсийн даргад (гүйцэтгэгчид хуулбар)
+ *   Х+directorAfter  → Зөвхөн газрын даргад
  */
 import { addDays, diffDays, formatLong, toBusinessDay } from "./date";
 import type {
@@ -23,10 +22,10 @@ export const RULES: {
   audience: string;
   tone: "warn" | "crit" | "sev";
 }[] = [
-  { key: "reminder", label: "Урьдчилсан сануулга", short: "Сануулга", direction: -1, setting: "reminderLead", audience: "Гүйцэтгэгч компани", tone: "warn" },
-  { key: "final", label: "Эцсийн сануулга", short: "Эцсийн сануулга", direction: -1, setting: "finalLead", audience: "Гүйцэтгэгч компани", tone: "warn" },
-  { key: "level2", label: "Хэлтсийн даргад мэдэгдэх", short: "Хэлтсийн дарга", direction: 1, setting: "deptHeadAfter", audience: "Захиалагчийн хэлтсийн дарга + гүйцэтгэгч", tone: "crit" },
-  { key: "level3", label: "Газрын даргад мэдэгдэх", short: "Газрын дарга", direction: 1, setting: "directorAfter", audience: "Газрын дарга + гүйцэтгэх захирал", tone: "sev" },
+  { key: "reminder", label: "Урьдчилсан сануулга", short: "Сануулга", direction: -1, setting: "reminderLead", audience: "Гүйцэтгэгчийн мэргэжилтэн", tone: "warn" },
+  { key: "final", label: "Эцсийн сануулга", short: "Эцсийн сануулга", direction: -1, setting: "finalLead", audience: "Гүйцэтгэгчийн төслийн хариуцагч", tone: "warn" },
+  { key: "level2", label: "Хэлтсийн даргад мэдэгдэх", short: "Хэлтсийн дарга", direction: 1, setting: "deptHeadAfter", audience: "Захиалагчийн хэлтсийн дарга (гүйцэтгэгчид хуулбар)", tone: "crit" },
+  { key: "level3", label: "Газрын даргад мэдэгдэх", short: "Газрын дарга", direction: 1, setting: "directorAfter", audience: "Зөвхөн газрын дарга", tone: "sev" },
 ];
 
 export const RULE_BY_KEY = Object.fromEntries(RULES.map((r) => [r.key, r])) as Record<RuleKey, (typeof RULES)[number]>;
@@ -69,17 +68,19 @@ export function computeStatus(m: Milestone, stage: Stage, asOf: string, s: Setti
 }
 
 export function recipientsFor(rule: RuleKey, company: Company, dept: Department, db: DB): Recipient[] {
-  const base: Recipient[] = [company.pm];
-  if (rule === "reminder" || rule === "final") return base;
+  // 1. Урьдчилсан сануулга — гүйцэтгэгчийн мэргэжилтэн
+  if (rule === "reminder") return [company.specialist ?? company.pm];
+  // 2. Эцсийн сануулга — гүйцэтгэгчийн төслийн хариуцагч
+  if (rule === "final") return [company.pm];
+  // 3. Хугацаа хэтэрсэн — захиалагчийн хэлтсийн дарга (гүйцэтгэгчид хуулбарлана)
   if (rule === "level2") {
-    return [...base, { name: dept.head, role: `${dept.name}-ийн дарга`, org: db.program.client, escalated: true }];
+    return [
+      company.pm,
+      { name: dept.head, role: `${dept.name}-ийн дарга`, org: db.program.client, escalated: true },
+    ];
   }
-  return [
-    ...base,
-    { name: dept.head, role: `${dept.name}-ийн дарга`, org: db.program.client },
-    { ...company.ceo, escalated: true },
-    { ...db.people.director, escalated: true },
-  ];
+  // 4. Ноцтой хоцролт — зөвхөн газрын дарга
+  return [{ ...db.people.director, escalated: true }];
 }
 
 export function subjectFor(rule: RuleKey, company: Company, stage: Stage, task: Task, s: Settings): string {
@@ -106,9 +107,10 @@ export function bodyFor(
 
   if (rule === "reminder" || rule === "final") {
     const left = diffDays(m.deadline, dueOn);
+    const to = rule === "reminder" ? (company.specialist ?? company.pm) : company.pm;
     return (
       head +
-      `Эрхэм хүндэт ${company.pm.name} та бүхэнд,\n\n` +
+      `Эрхэм хүндэт ${to.name} та бүхэнд,\n\n` +
       `Дээрх ажлын үе шатны гүйцэтгэлийг хүлээлгэн өгөх хугацаа дуусахад ${left} хоног үлдлээ. ` +
       `Гүйцэтгэлийн тайлан болон холбогдох материалыг товлосон хугацаанд системд ирүүлнэ үү.\n\n` +
       `Хугацаа хэтэрсэн тохиолдолд ${s.deptHeadAfter} хоногийн дараа захиалагч байгууллагын ` +
@@ -132,7 +134,6 @@ export function bodyFor(
     `Дээрх ажлын үе шат ${diffDays(dueOn, m.deadline)} хоногоор хугацаа хэтэрч, гэрээт үүргийн ` +
     `биелэлтэд эрсдэл үүслээ. ${dept.name}-ийн дарга ${dept.head}-д ` +
     `${s.directorAfter - s.deptHeadAfter} хоногийн өмнө мэдэгдсэн боловч гүйцэтгэл ирээгүй байна.\n\n` +
-    `Гүйцэтгэгч ${company.name}-ийн гүйцэтгэх захирал ${company.ceo.name}-д хуулбарлан хүргүүлэв. ` +
     `Гэрээний нөхцөлийн дагуу арга хэмжээ авахыг хүсэв.`
   );
 }
@@ -237,6 +238,7 @@ export function buildViews(db: DB, asOf: string): MilestoneView[] {
     return {
       id: m.id,
       title: task.title,
+      group: task.group,
       companyId: company.id,
       companyName: company.name,
       companyNo: company.no,

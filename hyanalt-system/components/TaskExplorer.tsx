@@ -10,6 +10,7 @@ import type { Status } from "@/lib/types";
 export interface Row {
   id: string;
   title: string;
+  group?: string;
   companyId: string;
   companyNo: number;
   companyName: string;
@@ -213,7 +214,7 @@ export function TaskExplorer({
                         <div className="min-w-0">
                           <div className="truncate">{r.title}</div>
                           <div className="truncate text-[10.5px] text-ink-3">
-                            Хариуцах: {r.deptName} · {r.deptHead}
+                            {r.group ? `${r.group} · ` : ""}Хариуцах: {r.deptName} · {r.deptHead}
                           </div>
                         </div>
                       </div>

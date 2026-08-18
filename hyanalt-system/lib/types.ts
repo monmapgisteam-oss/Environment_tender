@@ -42,6 +42,10 @@ export interface Company {
   deptId: string;
   /** Гэрээний дүн (сая төгрөг) */
   amount: number;
+  /** Жишээ өгөгдөл эсэх (бодит гэрээ биш) */
+  demo?: boolean;
+  /** Урьдчилсан сануулга хүлээн авах мэргэжилтэн (байхгүй бол pm) */
+  specialist?: Recipient;
   pm: Recipient;
   ceo: Recipient;
 }
@@ -70,6 +74,8 @@ export interface Task {
   deptId: string;
   no: number;
   title: string;
+  /** Төлөвлөгөөнд харьяалагдах бүлэг (дэд ажил бол эцэг мөрийн нэр) */
+  group?: string;
 }
 
 export interface Milestone {
@@ -137,6 +143,7 @@ export interface DB {
 export interface MilestoneView {
   id: string;
   title: string;
+  group?: string;
   companyId: string;
   companyName: string;
   companyNo: number;

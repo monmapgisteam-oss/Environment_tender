@@ -24,10 +24,10 @@ export interface FeedItem {
 }
 
 const RULE_UI: Record<RuleKey, { label: string; color: string; hint: string }> = {
-  reminder: { label: "1. Урьдчилсан сануулга", color: "var(--warn)", hint: "Гүйцэтгэгчид сануулав" },
-  final: { label: "2. Эцсийн сануулга", color: "var(--warn)", hint: "Гүйцэтгэгчид давтан сануулав" },
+  reminder: { label: "1. Урьдчилсан сануулга", color: "var(--warn)", hint: "Гүйцэтгэгчийн мэргэжилтэнд сануулав" },
+  final: { label: "2. Эцсийн сануулга", color: "var(--warn)", hint: "Төслийн хариуцагчид давтан сануулав" },
   level2: { label: "3. Хэлтсийн даргад", color: "var(--crit)", hint: "Хугацаа хэтэрсэн тул хэлтсийн даргад мэдэгдэв" },
-  level3: { label: "4. Газрын даргад", color: "var(--sev)", hint: "Ноцтой хоцролт — газрын дарга, захиралд мэдэгдэв" },
+  level3: { label: "4. Газрын даргад", color: "var(--sev)", hint: "Ноцтой хоцролт — газрын даргад мэдэгдэв" },
 };
 
 const FILTERS: { key: string; label: string }[] = [

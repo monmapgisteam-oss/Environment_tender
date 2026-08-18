@@ -57,6 +57,7 @@ export default function SettingsPage() {
                   <div className="flex items-baseline gap-2">
                     <span className="num text-[10.5px] text-ink-3">{c.no}.</span>
                     <b className="text-[12px] font-medium">{c.name}</b>
+                    {c.demo && <span className="text-[9.5px] text-ink-3">жишээ өгөгдөл</span>}
                     <span className="num ml-auto text-[10px] text-ink-3">{c.contractNo}</span>
                   </div>
                   <div className="mt-0.5 truncate text-[10.5px] text-ink-3">
@@ -64,10 +65,10 @@ export default function SettingsPage() {
                   </div>
                   <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-[10.5px] text-ink-2">
                     <span>
-                      <span className="text-ink-3">1-3 шат:</span> {c.pm.name}
+                      <span className="text-ink-3">1-р шат:</span> {(c.specialist ?? c.pm).name}
                     </span>
                     <span>
-                      <span className="text-ink-3">4-р шат:</span> {c.ceo.name}
+                      <span className="text-ink-3">2-3 шат:</span> {c.pm.name}
                     </span>
                     <span className="num ml-auto text-ink-3">
                       {c.start} → {c.end}

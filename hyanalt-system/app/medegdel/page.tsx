@@ -49,10 +49,10 @@ export default function NotificationsPage() {
     <main className="page-fill flex min-h-0 flex-1 flex-col gap-3 p-3">
       {/* Шатлалын тайлбар — юу нь юу болохыг нэг харцаар */}
       <section className="grid flex-none grid-cols-2 gap-3 lg:grid-cols-4">
-        <Step no="1" title="Урьдчилсан сануулга" when={`Хугацаа дуусахаас ${s.reminderLead} хоногийн өмнө`} to="Гүйцэтгэгч компанид" value={count("reminder")} color="var(--warn)" />
-        <Step no="2" title="Эцсийн сануулга" when={`Хугацаа дуусахаас ${s.finalLead} хоногийн өмнө`} to="Гүйцэтгэгч компанид" value={count("final")} color="var(--warn)" />
+        <Step no="1" title="Урьдчилсан сануулга" when={`Хугацаа дуусахаас ${s.reminderLead} хоногийн өмнө`} to="Гүйцэтгэгчийн мэргэжилтэнд" value={count("reminder")} color="var(--warn)" />
+        <Step no="2" title="Эцсийн сануулга" when={`Хугацаа дуусахаас ${s.finalLead} хоногийн өмнө`} to="Төслийн хариуцагчид" value={count("final")} color="var(--warn)" />
         <Step no="3" title="Хэлтсийн даргад" when={`Хугацаа хэтэрснээс ${s.deptHeadAfter} хоногийн дараа`} to="Захиалагчийн хэлтсийн даргад" value={count("level2")} color="var(--crit)" />
-        <Step no="4" title="Газрын даргад" when={`Хугацаа хэтэрснээс ${s.directorAfter} хоногийн дараа`} to="Газрын дарга, гүйцэтгэх захиралд" value={count("level3")} color="var(--sev)" />
+        <Step no="4" title="Газрын даргад" when={`Хугацаа хэтэрснээс ${s.directorAfter} хоногийн дараа`} to="Зөвхөн газрын даргад" value={count("level3")} color="var(--sev)" />
       </section>
 
       <NoteFeed

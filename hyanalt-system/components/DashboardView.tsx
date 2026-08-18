@@ -56,6 +56,7 @@ export interface CompanyRow {
   id: string;
   no: number;
   name: string;
+  demo: boolean;
   scope: string;
   total: number;
   done: number;
@@ -246,6 +247,7 @@ export function DashboardView({
                       <td className="cell max-w-[168px] leading-tight">
                         <span className={`block truncate ${on ? "text-ink" : "text-ink-2"}`}>
                           <span className="num text-ink-3">{row.no}.</span> {row.name}
+                          {row.demo && <span className="ml-1.5 text-[9.5px] text-ink-3">жишээ</span>}
                         </span>
                         <span className="block truncate text-[9.5px] text-ink-3">{row.scope}</span>
                       </td>

@@ -139,6 +139,7 @@ export default function DashboardPage() {
         id: cmp.id,
         no: cmp.no,
         name: cmp.name,
+        demo: Boolean(cmp.demo),
         scope: cmp.scope,
         total: items.length,
         done,

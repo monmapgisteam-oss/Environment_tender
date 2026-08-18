@@ -42,7 +42,6 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
 
   const open = Boolean(id);
   const view = detail?.view;
-  const lastLetter = detail?.notifications.at(-1);
 
   const act = (fn: (id: string) => void) => {
     if (!id) return;
@@ -84,6 +83,12 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
 
             <div className="border-b border-line px-5 py-4">
               <dl className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-1.5 text-[12.5px]">
+                {view.group && (
+                  <>
+                    <dt className="text-ink-3">Бүлэг</dt>
+                    <dd className="m-0">{view.group}</dd>
+                  </>
+                )}
                 <dt className="text-ink-3">Гүйцэтгэгч</dt>
                 <dd className="m-0">{view.companyName}</dd>
                 <dt className="text-ink-3">Хариуцах хэлтэс</dt>
@@ -149,30 +154,6 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
                 })}
               </div>
             </div>
-
-            {lastLetter && (
-              <div className="flex flex-col gap-2.5 border-b border-line px-5 py-4">
-                <div className="eyebrow">Сүүлд илгээсэн мэдэгдэл</div>
-                <div className="text-[12.5px] font-semibold">{lastLetter.subject}</div>
-                <pre className="rounded-lg border border-line bg-surface-2 p-3.5 text-[12.5px] leading-relaxed whitespace-pre-wrap">
-                  {lastLetter.body}
-                </pre>
-                <div className="flex flex-wrap gap-1.5">
-                  {lastLetter.recipients.map((r) => (
-                    <em
-                      key={r.name}
-                      className={`rounded-full border px-2 py-0.5 text-[11px] not-italic ${
-                        r.escalated
-                          ? "border-transparent bg-crit-soft font-semibold text-crit"
-                          : "border-line bg-surface-3 text-ink-2"
-                      }`}
-                    >
-                      {r.name} — {r.role}
-                    </em>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className="flex flex-wrap gap-2 px-5 py-4">
               {view.submittedAt ? (
