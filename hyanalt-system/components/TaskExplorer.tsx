@@ -219,8 +219,8 @@ export function TaskExplorer({
           <span className="ml-auto text-[11px] text-ink-3">НБОГ баганад «хүлээгдэж буй / хийгдэж байгаа» гэвэл сануулга НБОГ-ын хүмүүст очно</span>
         </div>
 
-        {/* Баганын нэр */}
-        <div className="eyebrow grid flex-none grid-cols-[1fr_130px_104px_92px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12">
+        {/* Баганын нэр — доорх бүх мөр яг энэ баганад эгнэнэ */}
+        <div className="eyebrow grid flex-none grid-cols-[1fr_132px_106px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-4">
           <span>Ажил</span>
           <span>НБОГ</span>
           <span>Монмэп</span>
@@ -228,25 +228,33 @@ export function TaskExplorer({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {tree.length === 0 && <p className="card-note px-3.5 py-3">Энэ нөхцөлд тохирох ажил алга.</p>}
+          {tree.length === 0 && <p className="card-note px-4 py-3">Энэ нөхцөлд тохирох ажил алга.</p>}
 
           {tree.map(({ stage, depts, counts }) => (
             <div key={stage.no}>
               {/* Үе шат */}
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => toggle(openStages, stage.no, setOpenStages)}
-                className="flex w-full items-center gap-2.5 border-b border-line bg-surface-2 px-3.5 py-2 text-left hover:bg-surface-3"
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle(openStages, stage.no, setOpenStages)}
+                className="grid w-full cursor-pointer grid-cols-[1fr_132px_106px_96px] items-center gap-3 border-b border-line bg-surface-2 py-2.5 pr-4 pl-4 hover:bg-surface-3"
               >
-                <IconChevronRight
-                  className={`size-3.5 flex-none text-ink-3 transition-transform ${stageOpen(stage.no) ? "rotate-90" : ""}`}
-                />
-                <span className="num text-[11px] text-ink-3">{stage.no}</span>
-                <b className="text-[12.5px]">{stage.name}</b>
-                <span className="num text-[10.5px] text-ink-3">
-                  {stage.start} → {stage.end}
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <IconChevronRight
+                    className={`size-3.5 flex-none text-ink-3 transition-transform ${stageOpen(stage.no) ? "rotate-90" : ""}`}
+                  />
+                  <span className="num text-[11px] text-ink-3">{stage.no}</span>
+                  <b className="truncate text-[12.5px]">{stage.name}</b>
+                  <span className="num flex-none text-[10.5px] text-ink-3">
+                    {stage.start} → {stage.end}
+                  </span>
+                  <span className="num flex-none text-[10.5px] text-ink-3">· {counts.total} ажил</span>
                 </span>
-                <Summary counts={counts} className="ml-auto" />
-              </button>
+                <Meter value={pct(counts.nbogDone, counts.total)} color="var(--ok)" />
+                <Meter value={pct(counts.vendorDone, counts.total)} color="var(--plum)" />
+                <span />
+              </div>
 
               {stageOpen(stage.no) &&
                 depts.map((dept) => {
@@ -254,17 +262,25 @@ export function TaskExplorer({
                   return (
                     <div key={key}>
                       {/* Хэлтэс */}
-                      <button
+                      <div
+                        role="button"
+                        tabIndex={0}
                         onClick={() => toggle(openDepts, key, setOpenDepts)}
-                        className="flex w-full items-center gap-2.5 border-b border-line px-3.5 py-1.5 pl-8 text-left hover:bg-surface-2"
+                        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle(openDepts, key, setOpenDepts)}
+                        className="grid w-full cursor-pointer grid-cols-[1fr_132px_106px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-8 hover:bg-surface-2"
                       >
-                        <IconChevronRight
-                          className={`size-3 flex-none text-ink-3 transition-transform ${deptOpen(key) ? "rotate-90" : ""}`}
-                        />
-                        <span className="truncate text-[12px] text-ink-2">{dept.name}</span>
-                        <span className="num text-[10.5px] text-ink-3">{dept.head}</span>
-                        <Summary counts={dept.counts} className="ml-auto" />
-                      </button>
+                        <span className="flex min-w-0 items-center gap-2.5">
+                          <IconChevronRight
+                            className={`size-3 flex-none text-ink-3 transition-transform ${deptOpen(key) ? "rotate-90" : ""}`}
+                          />
+                          <span className="truncate text-[12px] text-ink-2">{dept.name}</span>
+                          <span className="num flex-none text-[10.5px] text-ink-3">{dept.head}</span>
+                          <span className="num flex-none text-[10.5px] text-ink-3">· {dept.counts.total} ажил</span>
+                        </span>
+                        <Meter value={pct(dept.counts.nbogDone, dept.counts.total)} color="var(--ok)" />
+                        <Meter value={pct(dept.counts.vendorDone, dept.counts.total)} color="var(--plum)" />
+                        <span />
+                      </div>
 
                       {deptOpen(key) &&
                         dept.rows.map((r) => {
@@ -276,7 +292,7 @@ export function TaskExplorer({
                               tabIndex={0}
                               onClick={() => setFocus(r.id)}
                               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setFocus(r.id)}
-                              className="grid w-full cursor-pointer grid-cols-[1fr_130px_104px_92px] items-center gap-2.5 border-b border-line py-1.5 pr-3 pl-12 text-left hover:bg-surface-2"
+                              className="grid w-full cursor-pointer grid-cols-[1fr_132px_106px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-12 text-left hover:bg-surface-2"
                               style={late ? { background: "color-mix(in srgb, var(--crit-soft) 55%, transparent)" } : undefined}
                             >
                               <span className="flex min-w-0 gap-2.5">
@@ -286,16 +302,12 @@ export function TaskExplorer({
                                   {r.group && <span className="block truncate text-[10px] text-ink-3">{r.group}</span>}
                                 </span>
                               </span>
-                              <StateSelect side="nbog" milestoneId={r.id} value={r.nbogState} width={130} />
-                              <StateSelect side="vendor" milestoneId={r.id} value={r.vendorState} width={104} />
+                              <StateSelect side="nbog" milestoneId={r.id} value={r.nbogState} width={132} />
+                              <StateSelect side="vendor" milestoneId={r.id} value={r.vendorState} width={106} />
                               <span className="num text-right text-[11px] whitespace-nowrap text-ink-2">
                                 {r.deadline}
                                 <span className="block text-[10px]" style={{ color: late ? "var(--crit)" : "var(--ink-3)" }}>
-                                  {r.submittedAt
-                                    ? `ирүүлсэн ${r.submittedAt}`
-                                    : r.daysLeft < 0
-                                      ? `${-r.daysLeft} хоног хэтэрсэн`
-                                      : `${r.daysLeft} хоног үлдсэн`}
+                                  {r.daysLeft < 0 ? `${-r.daysLeft} хоног хэтэрсэн` : `${r.daysLeft} хоног үлдсэн`}
                                 </span>
                               </span>
                             </div>
@@ -328,26 +340,19 @@ export function TaskExplorer({
   );
 }
 
-/** Бүлгийн гүйцэтгэл — хоёр талын тэмдэглэгээгээр */
-function Summary({ counts, className = "" }: { counts: Counts; className?: string }) {
-  const pct = (n: number) => (counts.total ? Math.round((n / counts.total) * 100) : 0);
-  return (
-    <span className={`flex flex-none items-center gap-3 text-[10.5px] ${className}`}>
-      <span className="num text-ink-3">{counts.total} ажил</span>
-      <Meter label="НБОГ" value={pct(counts.nbogDone)} color="var(--ok)" />
-      <Meter label="Монмэп" value={pct(counts.vendorDone)} color="var(--plum)" />
-    </span>
-  );
+/** Хувь тооцох туслах */
+function pct(n: number, total: number) {
+  return total ? Math.round((n / total) * 100) : 0;
 }
 
-function Meter({ label, value, color }: { label: string; value: number; color: string }) {
+/** Гүйцэтгэлийн хувь — баганадаа эгнэсэн жижиг хэмжүүр */
+function Meter({ value, color }: { value: number; color: string }) {
   return (
-    <span className="flex items-center gap-1.5">
-      <span className="text-ink-3">{label}</span>
-      <span className="num w-7 text-right" style={{ color: value > 0 ? color : "var(--ink-3)" }}>
+    <span className="flex items-center gap-2">
+      <span className="num w-7 text-right text-[10.5px]" style={{ color: value > 0 ? color : "var(--ink-3)" }}>
         {value}%
       </span>
-      <span className="flex h-1.5 w-[40px] overflow-hidden rounded-full bg-surface-3">
+      <span className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-surface-3">
         <i style={{ width: `${value}%`, background: color }} />
       </span>
     </span>
