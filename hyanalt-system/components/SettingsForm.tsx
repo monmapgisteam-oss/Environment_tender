@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { resetSystemAction, updateSettingsAction } from "@/lib/actions";
+import { resetAll, updateSettings } from "@/lib/store";
 import type { RuleKey, Settings } from "@/lib/types";
 
 const RULE_UI: {
@@ -20,7 +20,7 @@ const RULE_UI: {
 
 export function SettingsForm({ settings }: { settings: Settings }) {
   const [pending, start] = useTransition();
-  const patch = (p: Partial<Settings>) => start(() => void updateSettingsAction(p));
+  const patch = (p: Partial<Settings>) => start(() => updateSettings(p));
 
   return (
     <>
@@ -100,7 +100,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
               disabled={pending}
               onClick={() => {
                 if (confirm("Бүх мэдэгдэл, бүртгэлийг устгаж системийг шинээр эхлүүлэх үү?")) {
-                  start(() => void resetSystemAction());
+                  start(() => resetAll());
                 }
               }}
             >

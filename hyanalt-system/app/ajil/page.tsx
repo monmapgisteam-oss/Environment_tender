@@ -1,12 +1,13 @@
+"use client";
+
 import { Suspense } from "react";
 import { TaskExplorer, type Row } from "@/components/TaskExplorer";
-import { readDB, reviewDate } from "@/lib/db";
+import { reviewDate } from "@/lib/seed";
+import { useDB } from "@/lib/store";
 import { buildViews } from "@/lib/escalation";
 
-export const dynamic = "force-dynamic";
-
-export default async function TasksPage() {
-  const db = await readDB();
+export default function TasksPage() {
+  const db = useDB();
   const asOf = reviewDate(db.settings);
   const rows: Row[] = buildViews(db, asOf).map((v) => ({
     id: v.id,

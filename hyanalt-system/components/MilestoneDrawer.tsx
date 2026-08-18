@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useTransition } from "react";
 import { StatusPill } from "@/components/StatusPill";
-import { getMilestoneDetailAction, markSubmittedAction, undoSubmitAction } from "@/lib/actions";
-import type { MilestoneView, Notification } from "@/lib/types";
+import { buildViews } from "@/lib/escalation";
+import { reviewDate } from "@/lib/seed";
+import { markSubmitted, undoSubmit, useDB } from "@/lib/store";
 
 const STEP_COLOR: Record<string, string> = {
   reminder: "var(--warn)",
@@ -19,19 +20,8 @@ const STEP_STATE: Record<string, string> = {
 };
 
 export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
-  const [data, setData] = useState<{ view: MilestoneView; notifications: Notification[] } | null>(null);
+  const db = useDB();
   const [pending, start] = useTransition();
-
-  useEffect(() => {
-    if (!id) return;
-    let alive = true;
-    getMilestoneDetailAction(id).then((d) => {
-      if (alive) setData(d);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [id]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -39,18 +29,24 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const detail = useMemo(() => {
+    if (!id) return null;
+    const asOf = reviewDate(db.settings);
+    const view = buildViews(db, asOf).find((v) => v.id === id);
+    if (!view) return null;
+    const notifications = db.notifications
+      .filter((n) => n.milestoneId === id && n.dueOn <= asOf)
+      .sort((a, b) => a.dueOn.localeCompare(b.dueOn));
+    return { view, notifications };
+  }, [db, id]);
+
   const open = Boolean(id);
-  // Хаагдах хөдөлгөөний үед агуулга нь алга болохгүйн тулд хуучин өгөгдлийг үлдээнэ
-  const detail = id ? (data?.view.id === id ? data : null) : data;
   const view = detail?.view;
   const lastLetter = detail?.notifications.at(-1);
 
-  const act = (fn: (id: string) => Promise<void>) => {
+  const act = (fn: (id: string) => void) => {
     if (!id) return;
-    start(async () => {
-      await fn(id);
-      setData(await getMilestoneDetailAction(id));
-    });
+    start(() => fn(id));
   };
 
   return (
@@ -180,11 +176,11 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
 
             <div className="flex flex-wrap gap-2 px-5 py-4">
               {view.submittedAt ? (
-                <button className="btn" disabled={pending} onClick={() => act(undoSubmitAction)}>
+                <button className="btn" disabled={pending} onClick={() => act(undoSubmit)}>
                   Ирүүлэлтийг цуцлах
                 </button>
               ) : (
-                <button className="btn btn-primary" disabled={pending} onClick={() => act(markSubmittedAction)}>
+                <button className="btn btn-primary" disabled={pending} onClick={() => act(markSubmitted)}>
                   Тайлан ирүүлсэн гэж бүртгэх
                 </button>
               )}

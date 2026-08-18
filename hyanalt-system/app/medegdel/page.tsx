@@ -1,14 +1,15 @@
+"use client";
+
 import { NoteFeed, type FeedItem } from "@/components/NoteFeed";
 import { diffDays } from "@/lib/date";
-import { readDB, reviewDate } from "@/lib/db";
+import { reviewDate } from "@/lib/seed";
+import { useDB } from "@/lib/store";
 import type { RuleKey } from "@/lib/types";
-
-export const dynamic = "force-dynamic";
 
 const SHOW = 250;
 
-export default async function NotificationsPage() {
-  const db = await readDB();
+export default function NotificationsPage() {
+  const db = useDB();
   const asOf = reviewDate(db.settings);
   const tasks = new Map(db.tasks.map((t) => [t.id, t]));
   const stages = new Map(db.stages.map((s) => [s.id, s]));

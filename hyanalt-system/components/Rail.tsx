@@ -5,6 +5,9 @@ import { usePathname } from "next/navigation";
 import {
   IconBell, IconDashboard, IconList, IconLogout, IconSliders, Mark,
 } from "@/components/icons";
+import { buildViews } from "@/lib/escalation";
+import { reviewDate } from "@/lib/seed";
+import { useDB } from "@/lib/store";
 
 const NAV = [
   { href: "/", label: "Хяналтын самбар", Icon: IconDashboard },
@@ -13,8 +16,11 @@ const NAV = [
   { href: "/tohirgoo", label: "Дүрэм, тохиргоо", Icon: IconSliders },
 ];
 
-export function Rail({ attention }: { attention: number }) {
+export function Rail() {
   const path = usePathname();
+  const db = useDB();
+  const views = buildViews(db, reviewDate(db.settings));
+  const attention = views.filter((v) => v.status === "level2" || v.status === "level3").length;
 
   return (
     <aside className="flex flex-none items-center gap-2 border-b border-line px-3 py-2 md:sticky md:top-0 md:h-screen md:w-14 md:flex-col md:gap-2 md:border-r md:border-b-0 md:px-0 md:py-3.5">

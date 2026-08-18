@@ -3,8 +3,6 @@ import { JetBrains_Mono, Manrope, Unbounded } from "next/font/google";
 import "./globals.css";
 import { Rail } from "@/components/Rail";
 import { TopBar } from "@/components/TopBar";
-import { readDB, reviewDate } from "@/lib/db";
-import { buildViews } from "@/lib/escalation";
 
 const display = Unbounded({
   subsets: ["latin", "cyrillic", "cyrillic-ext"],
@@ -22,19 +20,12 @@ const mono = JetBrains_Mono({
   variable: "--f-mono",
 });
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Гүйцэтгэлийн хянагч",
   description: "Гэрээт ажлын үе шатны хугацаа, шатлан мэдээллэх хяналтын систем",
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const db = await readDB();
-  const asOf = reviewDate(db.settings);
-  const views = buildViews(db, asOf);
-  const attention = views.filter((v) => v.status === "level2" || v.status === "level3").length;
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="mn" data-theme="dark" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
       <head>
@@ -49,9 +40,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Өргөн дэлгэцэд бүх мэдээлэл нэг дэлгэцэд багтана — хуудас өөрөө гүйхгүй.
             Нарийн дэлгэцэд багануудаас доош бууж, хэвийн гүйлгэлт болно. */}
         <div className="flex min-h-screen flex-col md:flex-row xl:h-screen xl:overflow-hidden">
-          <Rail attention={attention} />
+          <Rail />
           <div className="flex min-w-0 flex-1 flex-col xl:overflow-hidden">
-            <TopBar client={db.program.client} companies={db.companies.length} reviewDate={asOf} />
+            <TopBar />
             {children}
           </div>
         </div>

@@ -4,7 +4,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { IconRefresh, IconSearch } from "@/components/icons";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { runEngineAction, setReviewDateAction } from "@/lib/actions";
+import { reviewDate as reviewOf } from "@/lib/seed";
+import { refresh, setReviewDate, useDB } from "@/lib/store";
 
 const TITLES: Record<string, string> = {
   "/": "Хяналтын самбар",
@@ -13,15 +14,11 @@ const TITLES: Record<string, string> = {
   "/tohirgoo": "Дүрэм, тохиргоо",
 };
 
-export function TopBar({
-  client,
-  companies,
-  reviewDate,
-}: {
-  client: string;
-  companies: number;
-  reviewDate: string;
-}) {
+export function TopBar() {
+  const db = useDB();
+  const client = db.program.client;
+  const companies = db.companies.length;
+  const reviewDateValue = reviewOf(db.settings);
   const path = usePathname();
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -32,7 +29,7 @@ export function TopBar({
   const applyDate = (v: string) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || v < "2026-01-01" || v > "2027-06-30") return;
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => start(() => void setReviewDateAction(v)), 500);
+    timer.current = setTimeout(() => start(() => setReviewDate(v)), 500);
   };
 
   return (
@@ -68,7 +65,7 @@ export function TopBar({
             type="date"
             aria-label="Хяналтын огноо"
             className="field"
-            value={reviewDate}
+            value={reviewDateValue}
             min="2026-01-01"
             max="2027-06-30"
             onChange={(e) => applyDate(e.target.value)}
@@ -76,7 +73,7 @@ export function TopBar({
         </label>
 
         <button
-          onClick={() => start(() => void runEngineAction())}
+          onClick={() => start(() => refresh())}
           disabled={pending}
           title="Хөдөлгүүрийг ажиллуулж мэдэгдлийг шинэчлэх"
           aria-label="Хөдөлгүүр ажиллуулах"

@@ -1,11 +1,12 @@
+"use client";
+
 import { SettingsForm } from "@/components/SettingsForm";
-import { readDB, reviewDate } from "@/lib/db";
+import { reviewDate } from "@/lib/seed";
+import { useDB } from "@/lib/store";
 import { buildViews } from "@/lib/escalation";
 
-export const dynamic = "force-dynamic";
-
-export default async function SettingsPage() {
-  const db = await readDB();
+export default function SettingsPage() {
+  const db = useDB();
   const asOf = reviewDate(db.settings);
   const views = buildViews(db, asOf);
   const depts = new Map(db.departments.map((d) => [d.id, d]));
@@ -80,19 +81,22 @@ export default async function SettingsPage() {
 
         <section className="card flex-none">
           <div className="card-head">
-            <h2 className="card-title">Автомат ажиллагаа</h2>
-            <span className="card-note">хуваарьт даалгавраас дуудах цэг</span>
+            <h2 className="card-title">Хөдөлгүүр хэрхэн ажиллах вэ</h2>
+            <span className="card-note">энэ хувилбарт хөтөч дээр тооцогдоно</span>
           </div>
-          <div className="px-3.5 pb-3.5">
-            <pre className="num overflow-x-auto rounded-lg border border-line bg-surface-2 p-3 text-[11px] leading-relaxed text-ink-2">
-{`# Өдөр бүр (Windows Task Scheduler / cron)
-curl -X POST http://localhost:3000/api/escalate
-
-# Тодорхой огноогоор шалгах
-curl "http://localhost:3000/api/escalate?date=2026-09-08"`}
-            </pre>
-            <p className="card-note mt-2">
-              Бүх гүйцэтгэгчийн ажлыг нэг дуудалтаар шалгана. И-мэйл, вебхүкийн тохиргоог .env.local файлд заана.
+          <div className="flex flex-col gap-2 px-3.5 pb-3.5 text-[11.5px] text-ink-2">
+            <p className="m-0">
+              Хуудсыг нээх бүрд болон дээд мөрний шинэчлэх товч дарахад шатлан мэдээллэх дүрэм
+              бүх 763 хяналтын цэг дээр дахин тооцогдож, хугацаа хэтэрсэн ажлуудад мэдэгдэл үүснэ.
+            </p>
+            <p className="m-0">
+              Таны хийсэн өөрчлөлт (хяналтын огноо, дүрмийн хоног, гараар бүртгэсэн тайлан) зөвхөн
+              таны хөтөч дээр хадгалагдана. Бусад хүнд нөлөөлөхгүй, «Системийг шинээр эхлүүлэх»
+              товчоор анхны төлөвт буцаана.
+            </p>
+            <p className="m-0 text-ink-3">
+              И-мэйл автоматаар илгээх, бүх хэрэглэгчид нэг нийтлэг өгөгдөлтэй байхыг хүсвэл
+              системийг байгууллагын сервер дээр байршуулна (README-гээс үзнэ үү).
             </p>
           </div>
         </section>

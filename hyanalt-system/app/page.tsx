@@ -1,15 +1,16 @@
+"use client";
+
 import { DashboardView, type CompanyRow, type Scope } from "@/components/DashboardView";
 import { diffDays, monthEnd, nextMonth } from "@/lib/date";
-import { readDB, reviewDate } from "@/lib/db";
+import { reviewDate } from "@/lib/seed";
+import { useDB } from "@/lib/store";
 import { buildViews, countBy, STATUS_RANK } from "@/lib/escalation";
 import type { Milestone, MilestoneView, Status } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
-
 const QUEUE_SHOWN = 5;
 
-export default async function DashboardPage() {
-  const db = await readDB();
+export default function DashboardPage() {
+  const db = useDB();
   const asOf = reviewDate(db.settings);
   const views = buildViews(db, asOf);
 

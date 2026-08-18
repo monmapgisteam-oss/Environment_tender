@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { IconAlert, IconChevronLeft, IconChevronRight } from "@/components/icons";
-import { setReviewDateAction } from "@/lib/actions";
+import { setReviewDate } from "@/lib/store";
 import { diffDays } from "@/lib/date";
 
 const WEEKDAYS = ["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"];
@@ -92,7 +92,7 @@ export function Calendar({
           return (
             <button
               key={date}
-              onClick={() => start(() => void setReviewDateAction(date))}
+              onClick={() => start(() => setReviewDate(date))}
               disabled={pending}
               title={[
                 dueCount ? `${dueCount} ажлын эцсийн хугацаа` : "",

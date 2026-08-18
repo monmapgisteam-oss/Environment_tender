@@ -1,16 +1,10 @@
 /**
- * Энгийн файл суурьт өгөгдлийн сан (data/db.json).
- * Бодит нэвтрүүлэлтэд эндхийн readDB/writeDB-г Postgres, MongoDB зэргээр солиход
- * бусад модуль өөрчлөгдөхгүй.
+ * Төлөвлөгөөний өгөгдлийг санах ойд үүсгэх цэвэр модуль.
+ * Node-ийн файл системээс хамаарахгүй тул хөтөч дээр ч ажиллана.
  */
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import { addDays, hash, today } from "./date";
 import { COMPANIES, DEPARTMENTS, MONMAP_STAGES, MONMAP_TASKS, PEOPLE, PROGRAM, splitStages } from "./plan";
 import type { Company, DB, Milestone, Settings, Stage, Task } from "./types";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-const DB_FILE = path.join(DATA_DIR, "db.json");
 
 export const DEFAULT_SETTINGS: Settings = {
   reminderLead: 14,
@@ -117,31 +111,6 @@ export function buildSeed(): DB {
     notifications: [],
     settings: { ...DEFAULT_SETTINGS },
   };
-}
-
-export async function readDB(): Promise<DB> {
-  try {
-    const raw = await fs.readFile(DB_FILE, "utf8");
-    const db = JSON.parse(raw) as DB;
-    if (db.version !== 2) throw new Error("хуучин хувилбар");
-    db.settings = { ...DEFAULT_SETTINGS, ...db.settings };
-    return db;
-  } catch {
-    const seed = buildSeed();
-    await writeDB(seed);
-    return seed;
-  }
-}
-
-export async function writeDB(db: DB): Promise<void> {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(DB_FILE, JSON.stringify(db, null, 2), "utf8");
-}
-
-export async function resetDB(): Promise<DB> {
-  const seed = buildSeed();
-  await writeDB(seed);
-  return seed;
 }
 
 /** Хяналтын огноо: тохиргоогоор заасан эсвэл бодит өнөөдөр */
