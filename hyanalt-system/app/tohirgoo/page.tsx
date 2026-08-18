@@ -47,23 +47,6 @@ export default function SettingsPage() {
             </ul>
           </div>
         </section>
-
-        <section className="card flex-none">
-          <div className="card-head">
-            <h2 className="card-title">Хөдөлгүүр хэрхэн ажиллах вэ</h2>
-            <span className="card-note">энэ хувилбарт хөтөч дээр тооцогдоно</span>
-          </div>
-          <div className="flex flex-col gap-2 px-3.5 pb-3.5 text-[11.5px] text-ink-2">
-            <p className="m-0">
-              Хуудсыг нээх бүрд болон дээд мөрний шинэчлэх товч дарахад шатлан мэдээллэх дүрэм бүх
-              хяналтын цэг дээр дахин тооцогдож, хугацаа хэтэрсэн ажлуудад мэдэгдэл үүснэ.
-            </p>
-            <p className="m-0">
-              Ажлын НБОГ, Монмэп талын тэмдэглэгээ нь мэдэгдэл хэн рүү явахыг тодорхойлно. Таны хийсэн
-              өөрчлөлт зөвхөн таны хөтөч дээр хадгалагдана.
-            </p>
-          </div>
-        </section>
       </div>
     </main>
   );
