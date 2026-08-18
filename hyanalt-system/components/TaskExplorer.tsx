@@ -222,8 +222,8 @@ export function TaskExplorer({
         {/* Баганын нэр — доорх бүх мөр яг энэ баганад эгнэнэ */}
         <div className="eyebrow grid flex-none grid-cols-[1fr_132px_106px_96px] items-center gap-3 border-b border-line py-2 pr-4 pl-4">
           <span>Ажил</span>
-          <span>НБОГ</span>
-          <span>Монмэп</span>
+          <span className="text-center">НБОГ</span>
+          <span className="text-center">Монмэп</span>
           <span className="text-right">Хугацаа</span>
         </div>
 
@@ -302,8 +302,12 @@ export function TaskExplorer({
                                   {r.group && <span className="block truncate text-[10px] text-ink-3">{r.group}</span>}
                                 </span>
                               </span>
-                              <StateSelect side="nbog" milestoneId={r.id} value={r.nbogState} width={132} />
-                              <StateSelect side="vendor" milestoneId={r.id} value={r.vendorState} width={106} />
+                              <span className="flex justify-center">
+                                <StateSelect side="nbog" milestoneId={r.id} value={r.nbogState} width={132} />
+                              </span>
+                              <span className="flex justify-center">
+                                <StateSelect side="vendor" milestoneId={r.id} value={r.vendorState} width={106} />
+                              </span>
                               <span className="num text-right text-[11px] whitespace-nowrap text-ink-2">
                                 {r.deadline}
                                 <span className="block text-[10px]" style={{ color: late ? "var(--crit)" : "var(--ink-3)" }}>
@@ -348,11 +352,11 @@ function pct(n: number, total: number) {
 /** Гүйцэтгэлийн хувь — баганадаа эгнэсэн жижиг хэмжүүр */
 function Meter({ value, color }: { value: number; color: string }) {
   return (
-    <span className="flex items-center gap-2">
+    <span className="flex items-center justify-center gap-2">
       <span className="num w-7 text-right text-[10.5px]" style={{ color: value > 0 ? color : "var(--ink-3)" }}>
         {value}%
       </span>
-      <span className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-surface-3">
+      <span className="flex h-1.5 w-[64px] overflow-hidden rounded-full bg-surface-3">
         <i style={{ width: `${value}%`, background: color }} />
       </span>
     </span>
