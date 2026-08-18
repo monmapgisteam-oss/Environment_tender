@@ -13,6 +13,18 @@ import type {
   Notification, Recipient, RuleKey, Settings, Stage, Status, Task,
 } from "./types";
 
+/** Ажил хэний талд хүлээгдэж байна вэ — мэдэгдэл хэн рүү явахыг тодорхойлно */
+export type Blocking = "vendor" | "client";
+
+/**
+ * НБОГ баганын гар тэмдэглэгээнээс уншина:
+ *   "НБОГ-с хүлээгдэж буй" → саатал захиалагч талд   → мэдэгдэл НБОГ-ын хүмүүст
+ *   бусад тохиолдолд                                  → мэдэгдэл гүйцэтгэгчид
+ */
+export function blockingSide(m: Pick<Milestone, "nbogState">): Blocking {
+  return m.nbogState === "wait_client" ? "client" : "vendor";
+}
+
 export const RULES: {
   key: RuleKey;
   label: string;
@@ -67,19 +79,31 @@ export function computeStatus(m: Milestone, stage: Stage, asOf: string, s: Setti
   return "planned";
 }
 
-export function recipientsFor(rule: RuleKey, company: Company, dept: Department, db: DB): Recipient[] {
-  // 1. Урьдчилсан сануулга — гүйцэтгэгчийн мэргэжилтэн
-  if (rule === "reminder") return [company.specialist ?? company.pm];
-  // 2. Эцсийн сануулга — гүйцэтгэгчийн төслийн хариуцагч
-  if (rule === "final") return [company.pm];
-  // 3. Хугацаа хэтэрсэн — захиалагчийн хэлтсийн дарга (гүйцэтгэгчид хуулбарлана)
-  if (rule === "level2") {
-    return [
-      company.pm,
-      { name: dept.head, role: `${dept.name}-ийн дарга`, org: db.program.client, escalated: true },
-    ];
+export function recipientsFor(
+  rule: RuleKey,
+  company: Company,
+  dept: Department,
+  db: DB,
+  blocking: Blocking = "vendor",
+): Recipient[] {
+  const head: Recipient = { name: dept.head, role: `${dept.name}-ийн дарга`, org: db.program.client };
+  const coordinator: Recipient = {
+    name: db.departments.find((d) => d.id === "sam")!.head,
+    role: "Гэрээний хэрэгжилт хариуцсан хэлтсийн дарга",
+    org: db.program.client,
+  };
+
+  // Саатал захиалагч (НБОГ) талд — мэдэгдэл НБОГ-ын хүмүүст очно
+  if (blocking === "client") {
+    if (rule === "reminder" || rule === "final") return [head];
+    if (rule === "level2") return [head, { ...coordinator, escalated: true }];
+    return [{ ...db.people.director, escalated: true }];
   }
-  // 4. Ноцтой хоцролт — зөвхөн газрын дарга
+
+  // Саатал гүйцэтгэгч талд — мэдэгдэл гүйцэтгэгчид очно
+  if (rule === "reminder") return [company.specialist ?? company.pm];
+  if (rule === "final") return [company.pm];
+  if (rule === "level2") return [company.pm, { ...head, escalated: true }];
   return [{ ...db.people.director, escalated: true }];
 }
 
@@ -95,7 +119,7 @@ export function subjectFor(rule: RuleKey, company: Company, stage: Stage, task: 
 
 export function bodyFor(
   rule: RuleKey, db: DB, company: Company, dept: Department, task: Task, stage: Stage,
-  m: Milestone, dueOn: string, s: Settings,
+  m: Milestone, dueOn: string, s: Settings, blocking: Blocking = "vendor",
 ): string {
   const head =
     `Гэрээ: ${company.contractNo} (${company.scope})\n` +
@@ -107,6 +131,16 @@ export function bodyFor(
 
   if (rule === "reminder" || rule === "final") {
     const left = diffDays(m.deadline, dueOn);
+    if (blocking === "client") {
+      return (
+        head +
+        `Эрхэм хүндэт ${dept.head} даргад,\n\n` +
+        `Дээрх ажил захиалагч талаас хүлээгдэж байгаа гэж тэмдэглэгдсэн бөгөөд хугацаа дуусахад ` +
+        `${left} хоног үлдлээ. Шаардлагатай мэдээлэл, шийдвэрийг гүйцэтгэгчид хугацаанд нь хүргүүлнэ үү.\n\n` +
+        `Хугацаа хэтэрсэн тохиолдолд ${s.deptHeadAfter} хоногийн дараа гэрээний хэрэгжилт хариуцсан ` +
+        `хэлтсийн даргад мэдэгдэнэ.`
+      );
+    }
     const to = rule === "reminder" ? (company.specialist ?? company.pm) : company.pm;
     return (
       head +
@@ -118,6 +152,16 @@ export function bodyFor(
     );
   }
   if (rule === "level2") {
+    if (blocking === "client") {
+      return (
+        head +
+        `Эрхэм хүндэт ${db.departments.find((d) => d.id === "sam")!.head} даргад,\n\n` +
+        `Дээрх ажлын эцсийн хугацаа ${formatLong(m.deadline)} дуусгавар болсон боловч захиалагч талаас ` +
+        `шаардлагатай мэдээлэл, шийдвэр гараагүйн улмаас гүйцэтгэл хойшилж байна. ` +
+        `Хугацаа хэтэрсэн: ${diffDays(dueOn, m.deadline)} хоног.\n\n` +
+        `${dept.name}-тэй хамтран асуудлыг шийдвэрлэнэ үү.`
+      );
+    }
     return (
       head +
       `Эрхэм хүндэт ${dept.head} даргад,\n\n` +
@@ -173,6 +217,9 @@ export function runEscalation(db: DB, asOf: string): RunResult {
     const dept = depts.get(m.deptId)!;
     const task = tasks.get(m.taskId)!;
     const company = companies.get(m.companyId)!;
+    // Гараар "Дууссан" гэж тэмдэглэсэн бол шатлал зогсоно
+    if (m.nbogState === "done") continue;
+    const blocking = blockingSide(m);
     for (const rule of RULES) {
       const dueOn = triggerDate(m.deadline, rule.key, s);
       if (diffDays(asOf, dueOn) < 0) continue; // хугацаа болоогүй
@@ -188,8 +235,8 @@ export function runEscalation(db: DB, asOf: string): RunResult {
         dueOn,
         sentAt: new Date().toISOString(),
         subject: subjectFor(rule.key, company, stage, task, s),
-        body: bodyFor(rule.key, db, company, dept, task, stage, m, dueOn, s),
-        recipients: recipientsFor(rule.key, company, dept, db),
+        body: bodyFor(rule.key, db, company, dept, task, stage, m, dueOn, s, blocking),
+        recipients: recipientsFor(rule.key, company, dept, db, blocking),
         channels: ["И-мэйл", "Системийн мэдэгдэл"],
         delivered: false,
       });
@@ -225,12 +272,20 @@ export function buildViews(db: DB, asOf: string): MilestoneView[] {
     const sent = new Set((notesByMilestone.get(m.id) ?? []).map((n) => n.rule));
     const submitted = m.submittedAt && diffDays(m.submittedAt, asOf) <= 0 ? m.submittedAt : null;
 
+    const blocking = blockingSide(m);
+    const closed = m.nbogState === "done";
     const steps: LadderStep[] = RULES.map((rule) => {
       const dueOn = triggerDate(m.deadline, rule.key, s);
       let state: LadderStep["state"] = "pending";
       if (sent.has(rule.key)) state = "sent";
-      else if (submitted && diffDays(submitted, dueOn) <= 0) state = "skipped";
-      return { rule: rule.key, label: rule.label, dueOn, state, recipients: recipientsFor(rule.key, company, dept, db) };
+      else if (closed || (submitted && diffDays(submitted, dueOn) <= 0)) state = "skipped";
+      return {
+        rule: rule.key,
+        label: rule.label,
+        dueOn,
+        state,
+        recipients: recipientsFor(rule.key, company, dept, db, blocking),
+      };
     });
 
     const history = (notesByMilestone.get(m.id) ?? []).sort((a, b) => a.dueOn.localeCompare(b.dueOn));

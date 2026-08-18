@@ -211,7 +211,7 @@ export function TaskExplorer({
               </button>
             );
           })}
-          <span className="ml-auto text-[11px] text-ink-3">Үе шат → хэлтэс → ажил дарааллаар задарна</span>
+          <span className="ml-auto text-[11px] text-ink-3">НБОГ баганад «НБОГ-с хүлээгдэж буй» гэвэл сануулга НБОГ-ын хүмүүст очно</span>
         </div>
 
         {/* Баганын нэр */}

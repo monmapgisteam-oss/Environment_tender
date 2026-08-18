@@ -107,6 +107,14 @@ export function MilestoneDrawer({ id, onClose }: { id: string | null; onClose: (
                 <dd className="num m-0">
                   {view.stageStart} → {view.deadline}
                 </dd>
+                <dt className="text-ink-3">Хүлээгдэж буй тал</dt>
+                <dd className="m-0">
+                  {view.nbogState === "done"
+                    ? "Дууссан — мэдэгдэл цаашид үүсэхгүй"
+                    : view.nbogState === "wait_client"
+                      ? "НБОГ тал — мэдэгдэл НБОГ-ын хүмүүст очно"
+                      : "Гүйцэтгэгч тал — мэдэгдэл Монмэп-д очно"}
+                </dd>
                 <dt className="text-ink-3">Төлөв</dt>
                 <dd className="m-0">
                   {view.submittedAt
